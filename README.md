@@ -340,13 +340,7 @@ curl "https://<your-worker-domain>/api/parse?url=https%3A%2F%2Fyb.tencent.com%2F
   "meta": {
     "errCode": 0,
     "expireTime": 1807420368,
-    "backendTraceId": "",
-    "tts": {
-      "status": "requires_yuanbao_token",
-      "websocketAudioUrl": "wss://api.yuanbao.tencent.com/ws/audio/tts",
-      "websocketSegmentUrl": "wss://api.yuanbao.tencent.com/ws/sentence/segmentSentences",
-      "httpFallbackUrl": "https://yb.tencent.com/api/audio/v2/tts"
-    }
+    "backendTraceId": ""
   }
 }
 ```
@@ -425,105 +419,6 @@ Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHT
 4. 读取 `props.pageProps.data.conversation_info`。
 5. 优先从 `shareExtraDetailObj.chatInfo[].convs` 提取完整对话。
 6. 返回最后一条 `speaker === "ai"` 的文本作为 `answerText`。
-
-## “听全文”TTS 链路分析
-
-元宝分享页里的“听全文”按钮确实不是浏览器内置朗读，而是腾讯服务器提供的 TTS。
-
-前端代码里存在两条路径：
-
-### WebSocket 流式 TTS
-
-优先使用 WebSocket：
-
-```text
-wss://api.yuanbao.tencent.com/ws/sentence/segmentSentences
-wss://api.yuanbao.tencent.com/ws/audio/tts
-```
-
-连接参数包括：
-
-```text
-hy_user=<hyUser>
-hy_token=<hyToken>
-hy_source=web
-randStr=<random>
-```
-
-分句接口发送：
-
-```text
-[BEGIN_<uuid>]
-完整文本
-[DONE]
-```
-
-音频接口逐句发送：
-
-```json
-{
-  "inputText": "这17个公式是人类智慧结晶的巅峰代表",
-  "voiceType": 606242081,
-  "speechSpeed": 0,
-  "source": 3,
-  "textIdx": 0,
-  "codec": "mp3",
-  "sessionid": "<random-session-id>"
-}
-```
-
-返回消息包含多段 `base64Audio`，最后以 `final: true` 标记结束。前端会把同一个 `sessionid` 的 `base64Audio` 拼接成 `audio/mpeg` Blob 播放。
-
-### HTTP 降级 TTS
-
-WebSocket 失败后，前端会降级到：
-
-```text
-POST https://yb.tencent.com/api/audio/v2/tts
-```
-
-请求体：
-
-```json
-{
-  "inputText": "你好",
-  "voiceType": 606242081,
-  "speechSpeed": 0,
-  "source": 3
-}
-```
-
-成功时返回：
-
-```json
-{
-  "data": {
-    "base64Audio": "..."
-  }
-}
-```
-
-## 为什么当前 Worker 不提供元宝原生音频
-
-公开分享链接本身不包含 `hy_user`、`hy_token` 或音频 URL。微信消息 XML 也只包含分享卡片元数据，例如标题、摘要、URL、缩略图 CDN 信息，不包含 TTS token。
-
-无 token 调用 HTTP TTS 接口会返回：
-
-```text
-HTTP 401
-get token err
-```
-
-因此，只传一个公开元宝 URL 时：
-
-- 文本解析：可以实现。
-- 复用腾讯元宝原生“听全文”音频：缺少 token，不能稳定匿名实现。
-
-如果后续能从微信 WebView 请求里抓到 `hy_user` 和 `hy_token`，可以扩展 Worker：
-
-- `/api/audio/stream`：连接腾讯 WebSocket TTS，并把音频片段转发给调用方。
-- `/api/audio/download`：收集所有 `base64Audio`，合并为 MP3 下载。
-- 可选 R2 缓存：用分享 ID 和文本 hash 作为 key 缓存音频文件。
 
 ## 安全说明
 

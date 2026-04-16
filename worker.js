@@ -141,12 +141,6 @@ async function parseYuanbaoShare(inputUrl) {
       errCode: pageData.err_code,
       expireTime: info.expireTime || null,
       backendTraceId: pageProps.backendTraceId || "",
-      tts: {
-        status: "requires_yuanbao_token",
-        websocketAudioUrl: "wss://api.yuanbao.tencent.com/ws/audio/tts",
-        websocketSegmentUrl: "wss://api.yuanbao.tencent.com/ws/sentence/segmentSentences",
-        httpFallbackUrl: "https://yb.tencent.com/api/audio/v2/tts",
-      },
     },
   };
 }
@@ -400,7 +394,7 @@ function renderHome() {
 <body>
   <main>
     <h1>Open YB</h1>
-    <p>粘贴腾讯元宝分享链接，解析公开分享页里的纯文本内容。音频接口需要元宝侧 token，本页面只提供文本解析。</p>
+    <p>粘贴腾讯元宝分享链接，解析公开分享页里的纯文本内容，方便复制、收藏和整理到知识库。</p>
     <form id="form">
       <input id="url" name="url" placeholder="https://yb.tencent.com/wx/ct/YFJCmiMxnhFCZJ" autocomplete="url" required>
       <button id="submit" type="submit">解析</button>
