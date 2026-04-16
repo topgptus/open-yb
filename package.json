@@ -1,0 +1,13 @@
+{
+  "name": "open-yb",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev worker.js",
+    "deploy": "wrangler deploy worker.js --name open-yb"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Open YB",
+  "description": "在 Chrome 中接管腾讯元宝微信分享页，解析正文、收藏内容并导出 Markdown。",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Open YB",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://yb.tencent.com/wx/ct/*",
+    "https://yuanbao.tencent.com/wx/ct/*",
+    "https://*.workers.dev/*"
+  ],
+  "optional_host_permissions": ["https://*/*"],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://yb.tencent.com/wx/ct/*",
+        "https://yuanbao.tencent.com/wx/ct/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
