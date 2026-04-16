@@ -27,26 +27,36 @@ https://yuanbao.tencent.com/wx/ct/...
 Run from this skill directory or pass the script path directly:
 
 ```bash
-python scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown
+python3 scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown
 ```
 
 Formats:
 
 ```bash
-python scripts/parse_yuanbao.py "<url>" --format markdown
-python scripts/parse_yuanbao.py "<url>" --format text
-python scripts/parse_yuanbao.py "<url>" --format json
+python3 scripts/parse_yuanbao.py "<url>" --format markdown
+python3 scripts/parse_yuanbao.py "<url>" --format text
+python3 scripts/parse_yuanbao.py "<url>" --format json
 ```
 
 Save output:
 
 ```bash
-python scripts/parse_yuanbao.py "<url>" --format markdown --output yuanbao-note.md
+python3 scripts/parse_yuanbao.py "<url>" --format markdown --output yuanbao-note.md
+```
+
+Fetch engine diagnostics:
+
+```bash
+python3 scripts/parse_yuanbao.py "<url>" --fetch-engine auto
+python3 scripts/parse_yuanbao.py "<url>" --fetch-engine urllib
+python3 scripts/parse_yuanbao.py "<url>" --fetch-engine curl
 ```
 
 ## Behavior
 
 The script requests the share page with a WeChat WebView User-Agent, extracts the Next.js `__NEXT_DATA__` JSON, and returns the Yuanbao conversation content. It does not require the Cloudflare Worker.
+
+Default fetch mode is `--fetch-engine auto`: try Python `urllib` first, then fall back to `curl` when Python's local SSL certificate chain fails. Use `--fetch-engine curl` directly on macOS/Linux machines where Python HTTPS verification is broken.
 
 The Cloudflare Worker remains useful for browser plugins and HTTP APIs. This skill is for local agent workflows.
 
@@ -57,6 +67,8 @@ When returning results to the user:
 - Include the title, source URL, and answer text.
 - If saving a file, mention the saved path.
 - If parsing fails, report the exact error and suggest checking that the URL is a public Yuanbao share link.
+- For `CERTIFICATE_VERIFY_FAILED`, retry with `--fetch-engine curl`.
+- For `notInWX`, explain that Yuanbao did not recognize the request as WeChat WebView and the WeChat-style headers should be checked.
 
 ## Limitations
 

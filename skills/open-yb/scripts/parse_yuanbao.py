@@ -11,6 +11,9 @@ import argparse
 import html
 import json
 import re
+import shutil
+import ssl
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -44,10 +47,16 @@ def main() -> int:
     )
     parser.add_argument("--output", "-o", help="Optional output file path.")
     parser.add_argument("--timeout", type=int, default=25, help="HTTP timeout in seconds.")
+    parser.add_argument(
+        "--fetch-engine",
+        choices=("auto", "urllib", "curl"),
+        default="auto",
+        help="HTML fetch engine. auto tries urllib first and falls back to curl on Python SSL certificate failures.",
+    )
     args = parser.parse_args()
 
     try:
-        result = parse_yuanbao_share(args.url, timeout=args.timeout)
+        result = parse_yuanbao_share(args.url, timeout=args.timeout, fetch_engine=args.fetch_engine)
         output = format_result(result, args.format)
     except Exception as exc:
         print(f"open-yb parse failed: {exc}", file=sys.stderr)
@@ -63,9 +72,9 @@ def main() -> int:
     return 0
 
 
-def parse_yuanbao_share(input_url: str, timeout: int = 25) -> dict[str, Any]:
+def parse_yuanbao_share(input_url: str, timeout: int = 25, fetch_engine: str = "auto") -> dict[str, Any]:
     share_url = normalize_share_url(input_url)
-    page_html = fetch_html(share_url, timeout=timeout)
+    page_html, used_fetch_engine = fetch_html(share_url, timeout=timeout, fetch_engine=fetch_engine)
     next_data = read_next_data(page_html)
     page_props = dig(next_data, "props", "pageProps") or {}
     page_data = page_props.get("data")
@@ -75,7 +84,10 @@ def parse_yuanbao_share(input_url: str, timeout: int = 25) -> dict[str, Any]:
 
     err_code = page_data.get("err_code")
     if err_code == "notInWX":
-        raise ParseError("Yuanbao rejected the request as notInWX")
+        raise ParseError(
+            "Yuanbao returned notInWX, meaning the request was not recognized as a WeChat WebView. "
+            "Retry with --fetch-engine curl, or check that the request still includes WeChat-style headers."
+        )
     if err_code not in (None, 0):
         raise ParseError(str(page_data.get("err_msg") or f"Yuanbao returned err_code={err_code}"))
 
@@ -105,6 +117,7 @@ def parse_yuanbao_share(input_url: str, timeout: int = 25) -> dict[str, Any]:
             "expireTime": info.get("expireTime"),
             "backendTraceId": page_props.get("backendTraceId") or "",
             "parsedAt": datetime.now().isoformat(timespec="seconds"),
+            "fetchEngine": used_fetch_engine,
         },
     }
 
@@ -120,15 +133,24 @@ def normalize_share_url(input_url: str) -> str:
     return urllib.parse.urlunparse(parsed._replace(scheme="https"))
 
 
-def fetch_html(url: str, timeout: int) -> str:
+def fetch_html(url: str, timeout: int, fetch_engine: str) -> tuple[str, str]:
+    if fetch_engine == "urllib":
+        return fetch_with_urllib(url, timeout), "urllib"
+    if fetch_engine == "curl":
+        return fetch_with_curl(url, timeout), "curl"
+
+    try:
+        return fetch_with_urllib(url, timeout), "urllib"
+    except ParseError as exc:
+        if not is_certificate_error(exc):
+            raise
+        return fetch_with_curl(url, timeout), "curl"
+
+
+def fetch_with_urllib(url: str, timeout: int) -> str:
     request = urllib.request.Request(
         url,
-        headers={
-            "User-Agent": WX_USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-            "Upgrade-Insecure-Requests": "1",
-        },
+        headers=request_headers(),
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -138,6 +160,54 @@ def fetch_html(url: str, timeout: int) -> str:
         raise ParseError(f"Yuanbao fetch failed: HTTP {exc.code}") from exc
     except urllib.error.URLError as exc:
         raise ParseError(f"Yuanbao fetch failed: {exc.reason}") from exc
+
+
+def fetch_with_curl(url: str, timeout: int) -> str:
+    if not shutil.which("curl"):
+        raise ParseError("curl fallback requested, but curl was not found on this machine")
+
+    command = [
+        "curl",
+        "-L",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--max-time",
+        str(timeout),
+    ]
+    for name, value in request_headers().items():
+        command.extend(["-H", f"{name}: {value}"])
+    command.append(url)
+
+    completed = subprocess.run(command, capture_output=True, text=True, check=False)
+    if completed.returncode != 0:
+        detail = (completed.stderr or completed.stdout or "").strip()
+        raise ParseError(f"Yuanbao fetch with curl failed: {detail or f'curl exit {completed.returncode}'}")
+    return completed.stdout
+
+
+def request_headers() -> dict[str, str]:
+    return {
+        "User-Agent": WX_USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Upgrade-Insecure-Requests": "1",
+    }
+
+
+def is_certificate_error(error: Exception) -> bool:
+    text = str(error)
+    current: BaseException | None = error
+    while current:
+        if isinstance(current, ssl.SSLCertVerificationError):
+            return True
+        reason = getattr(current, "reason", None)
+        if isinstance(reason, ssl.SSLCertVerificationError):
+            return True
+        if reason and "CERTIFICATE_VERIFY_FAILED" in str(reason):
+            return True
+        current = current.__cause__ or current.__context__
+    return "CERTIFICATE_VERIFY_FAILED" in text or "certificate verify failed" in text.lower()
 
 
 def read_next_data(page_html: str) -> dict[str, Any]:

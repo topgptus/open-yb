@@ -158,7 +158,7 @@ skills/open-yb/
 它包含：
 
 - `SKILL.md`：给 agent 读取的使用说明。
-- `scripts/parse_yuanbao.py`：本地解析脚本，只使用 Python 标准库，不需要 pip 安装依赖。
+- `scripts/parse_yuanbao.py`：本地解析脚本，只使用 Python 标准库，不需要 pip 安装依赖。默认使用 `auto` 抓取模式：先试 Python `urllib`，如果遇到本机 Python SSL 证书问题，会自动 fallback 到 `curl`。
 
 适合这些场景：
 
@@ -170,25 +170,39 @@ skills/open-yb/
 使用示例：
 
 ```bash
-python skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown
 ```
 
 输出纯文本：
 
 ```bash
-python skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format text
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format text
 ```
 
 输出 JSON：
 
 ```bash
-python skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format json
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format json
 ```
 
 保存为 Markdown 文件：
 
 ```bash
-python skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown -o yuanbao-note.md
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown -o yuanbao-note.md
+```
+
+如果遇到 Python SSL 证书问题，直接强制用 curl 抓取：
+
+```bash
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown --fetch-engine curl
+```
+
+排障时也可以指定抓取层：
+
+```bash
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --fetch-engine auto
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --fetch-engine urllib
+python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --fetch-engine curl
 ```
 
 Worker 和 skill 的区别：
