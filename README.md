@@ -5,6 +5,8 @@ Open YB 是一个把腾讯元宝微信分享链接转成浏览器可读内容的
 - Cloudflare Worker：负责解析元宝公开分享页里的纯文本内容。
 - Chrome 插件：负责在 Windows / macOS 的 Chrome 里接管元宝链接，显示内容、复制、收藏、导出 Markdown。
 
+项目地址：<https://github.com/topgptus/open-yb>
+
 示例链接：
 
 ```text
@@ -438,3 +440,4 @@ get token err
 - `worker.js`：Cloudflare Worker 源码，包含 Web UI 和 API。
 - `open-yb.mjs`：本地 Node 调试脚本，用相同 UA 抓取分享页并保存 HTML 快照。
 - `extension/`：Chrome 插件源码，包含页面接管、弹窗设置、收藏库和 Markdown 导出。
+- `extension/icons/open-yb-logo.svg`：Chrome 插件 Logo 源文件。

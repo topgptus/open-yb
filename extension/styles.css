@@ -147,9 +147,34 @@ h1 {
   padding: 16px;
 }
 
+.oyb-popup-brand {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto 1fr;
+  margin-bottom: 14px;
+}
+
+.oyb-popup-brand img {
+  display: block;
+}
+
 .oyb-popup h1 {
   font-size: 20px;
-  margin-bottom: 14px;
+  margin: 0 0 4px;
+}
+
+.oyb-popup-brand a,
+.oyb-project-link {
+  color: var(--oyb-accent);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.oyb-popup-brand a:hover,
+.oyb-project-link:hover {
+  text-decoration: underline;
 }
 
 .oyb-switch,
