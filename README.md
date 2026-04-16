@@ -441,3 +441,19 @@ get token err
 - `open-yb.mjs`：本地 Node 调试脚本，用相同 UA 抓取分享页并保存 HTML 快照。
 - `extension/`：Chrome 插件源码，包含页面接管、弹窗设置、收藏库和 Markdown 导出。
 - `extension/icons/open-yb-logo.svg`：Chrome 插件 Logo 源文件。
+
+## 加入 AI 交流群
+
+我们目前有 4 个 AI 交流群，接近 2000 位 AI 发烧友在一起交流。群里会讨论最新 AI 工具、模型动态、实战案例、自动化玩法和各种新鲜资讯；每周、每月也会持续分享值得关注的 AI 信息。
+
+欢迎扫码添加好友。添加后会由人工拉你进入交流群，因此可能会有一些延迟。
+
+务必备注：
+
+```text
+yb
+```
+
+扫码添加：
+
+![扫码添加好友，备注 yb](assets/qrcode.jpg)
