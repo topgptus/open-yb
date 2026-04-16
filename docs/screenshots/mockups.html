@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Open YB Screenshots</title>
+    <link rel="stylesheet" href="../../extension/styles.css">
+    <style>
+      body {
+        background: #eef3ea;
+        color: #1c211b;
+        margin: 0;
+      }
+      .shot {
+        box-sizing: border-box;
+        min-height: 100vh;
+        padding: 24px;
+      }
+      .browser {
+        background: #ffffff;
+        border: 1px solid #d8ded3;
+        border-radius: 8px;
+        box-shadow: 0 12px 30px rgba(28, 33, 27, 0.16);
+        overflow: hidden;
+      }
+      .bar {
+        align-items: center;
+        background: #d7efee;
+        display: flex;
+        gap: 10px;
+        height: 42px;
+        padding: 0 14px;
+      }
+      .dot {
+        background: #7aa99a;
+        border-radius: 999px;
+        height: 12px;
+        width: 12px;
+      }
+      .addr {
+        background: #f7f8f5;
+        border-radius: 999px;
+        color: #5e685b;
+        flex: 1;
+        font-size: 13px;
+        padding: 7px 12px;
+      }
+      .popup-wrap {
+        display: grid;
+        min-height: 640px;
+        place-items: center;
+      }
+      .popup-demo {
+        background: #ffffff;
+        border: 1px solid #d8ded3;
+        border-radius: 8px;
+        box-shadow: 0 12px 30px rgba(28, 33, 27, 0.18);
+        width: 420px;
+      }
+      .reader-demo,
+      .options-demo {
+        padding: 28px;
+      }
+      .blur {
+        filter: blur(4px);
+      }
+    </style>
+  </head>
+  <body>
+    <section id="popup" class="shot">
+      <div class="popup-wrap">
+        <main class="oyb-popup popup-demo">
+          <header class="oyb-popup-brand">
+            <img src="../../extension/icons/open-yb-logo.svg" alt="" width="42" height="42">
+            <div>
+              <h1>Open YB</h1>
+              <a href="https://github.com/topgptus/open-yb">github.com/topgptus/open-yb</a>
+            </div>
+          </header>
+          <label class="oyb-switch">
+            <input type="checkbox" checked>
+            <span>接管元宝分享页</span>
+          </label>
+          <label class="oyb-field">
+            <span>Worker 地址</span>
+            <input type="url" value="https://your-worker.workers.dev">
+          </label>
+          <button type="button">保存设置</button>
+          <button type="button" class="oyb-secondary">打开收藏库</button>
+          <p class="oyb-note">勾选后自动接管元宝分享页；取消勾选则忽略。</p>
+        </main>
+      </div>
+    </section>
+
+    <section id="reader" class="shot">
+      <div class="browser">
+        <div class="bar">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="addr">https://yb.tencent.com/wx/ct/example</span>
+        </div>
+        <main class="reader-demo">
+          <section class="oyb-reader">
+            <div class="oyb-toolbar">
+              <div>
+                <p class="oyb-kicker">Open YB</p>
+                <h1>示例：元宝解析结果</h1>
+              </div>
+              <div class="oyb-actions">
+                <button type="button">复制正文</button>
+                <button type="button">收藏</button>
+                <button type="button">导出 MD</button>
+                <button type="button">设置</button>
+              </div>
+            </div>
+            <p class="oyb-status">来源：https://yb.tencent.com/wx/ct/example</p>
+            <article class="oyb-content">
+              <section class="oyb-block">
+                <h2>问题</h2>
+                <pre>提炼项目地址、核心内容和 tag</pre>
+              </section>
+              <section class="oyb-block">
+                <h2>回答</h2>
+                <pre>**项目地址**
+GitHub: https://github.com/example/project
+
+**核心内容**
+1. 解决了一个具体问题
+2. 给出了关键操作步骤
+3. 适合整理进知识库
+
+**标签**
+#AI工具 #效率提升 #项目整理</pre>
+              </section>
+            </article>
+          </section>
+        </main>
+      </div>
+    </section>
+
+    <section id="favorites" class="shot">
+      <div class="browser">
+        <div class="bar">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="addr">chrome-extension://open-yb/options.html</span>
+        </div>
+        <main class="oyb-options options-demo">
+          <header class="oyb-options-header">
+            <div>
+              <p class="oyb-kicker">Open YB</p>
+              <h1>元宝收藏库</h1>
+              <a class="oyb-project-link" href="https://github.com/topgptus/open-yb">github.com/topgptus/open-yb</a>
+            </div>
+            <div class="oyb-actions">
+              <button type="button">全选</button>
+              <button type="button">复制合并 MD</button>
+              <button type="button">导出合并 MD</button>
+              <button type="button" class="oyb-danger">删除</button>
+            </div>
+          </header>
+          <section class="oyb-settings">
+            <label class="oyb-switch">
+              <input type="checkbox" checked>
+              <span>接管元宝分享页</span>
+            </label>
+            <label class="oyb-field">
+              <span>Worker 地址</span>
+              <input type="url" value="https://your-worker.workers.dev">
+            </label>
+            <button type="button">保存设置</button>
+          </section>
+          <p class="oyb-status">收藏 3 篇。</p>
+          <section class="oyb-list">
+            <article class="oyb-favorite">
+              <label class="oyb-check"><input type="checkbox" checked><span></span></label>
+              <div class="oyb-favorite-main">
+                <h2>视频文案拆解</h2>
+                <p>分析开头钩子、结构、卖点和复刻注意点</p>
+                <a href="#">https://yb.tencent.com/wx/ct/example-1</a>
+                <time>2026/4/16 06:33:04</time>
+              </div>
+              <div class="oyb-favorite-actions">
+                <button type="button">复制</button>
+                <button type="button">导出</button>
+                <button type="button" class="oyb-danger">删除</button>
+              </div>
+            </article>
+            <article class="oyb-favorite">
+              <label class="oyb-check"><input type="checkbox"><span></span></label>
+              <div class="oyb-favorite-main">
+                <h2>公众号核心观点</h2>
+                <p>提炼项目地址、关键步骤、适合人群和标签</p>
+                <a href="#">https://yb.tencent.com/wx/ct/example-2</a>
+                <time>2026/4/16 06:32:09</time>
+              </div>
+              <div class="oyb-favorite-actions">
+                <button type="button">复制</button>
+                <button type="button">导出</button>
+                <button type="button" class="oyb-danger">删除</button>
+              </div>
+            </article>
+          </section>
+        </main>
+      </div>
+    </section>
+  </body>
+</html>
