@@ -216,17 +216,17 @@ def index_html() -> str:
       left: 24px;
       top: 120px;
       z-index: 1000;
-      width: 250px;
-      padding: 18px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, rgba(20, 83, 45, 0.94), rgba(15, 118, 110, 0.9));
-      color: #ffffff;
-      box-shadow: 0 18px 45px rgba(23, 34, 28, 0.22);
+      cursor: pointer;
+      display: block;
     }
-    .floating-ad h3 { margin: 0 0 10px; font-size: 1.15rem; }
-    .floating-ad p { margin: 0 0 12px; color: rgba(255,255,255,.82); line-height: 1.55; font-size: .88rem; }
-    .floating-ad a { color: #d9f99d; font-weight: 700; text-decoration: none; }
-    .floating-ad img { width: 92px; height: 92px; object-fit: cover; border-radius: 12px; background: #fff; }
+    .floating-ad img {
+      display: block;
+      width: 260px;
+      max-width: min(260px, calc(100vw - 48px));
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 18px 45px rgba(23, 34, 28, 0.24);
+    }
     .floating-ad-toggle {
       position: absolute;
       top: -12px;
@@ -241,9 +241,8 @@ def index_html() -> str:
       font-weight: 800;
       box-shadow: 0 10px 25px rgba(239, 68, 68, 0.55);
     }
-    .floating-ad.is-mini { width: 128px; padding: 12px; bottom: 80px; top: auto; }
-    .floating-ad.is-mini h3, .floating-ad.is-mini p, .floating-ad.is-mini .floating-note { display: none; }
-    .floating-ad.is-mini img { width: 100px; height: 100px; }
+    .floating-ad.is-mini { left: 12px; top: auto; bottom: 80px; }
+    .floating-ad.is-mini img { width: 120px; border-radius: 14px; }
     .hero {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 220px;
@@ -263,7 +262,9 @@ def index_html() -> str:
       color: #fff;
       font-weight: 900;
       box-shadow: 0 12px 28px rgba(31, 122, 85, 0.22);
+      overflow: hidden;
     }
+    .brand-icon img { width: 100%; height: 100%; object-fit: cover; }
     h1 { margin: 0; font-size: 2.1rem; line-height: 1.2; }
     .hero-subtitle {
       display: inline-flex;
@@ -296,6 +297,36 @@ def index_html() -> str:
       background: rgba(34, 197, 94, .1);
       border: 1px solid rgba(34, 197, 94, .18);
       border-radius: 10px;
+    }
+    .promo-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.2rem;
+      padding: 1rem;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 28px rgba(23, 34, 28, 0.06);
+    }
+    .promo-card img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 18px;
+      flex: 0 0 auto;
+      box-shadow: 0 10px 24px rgba(23, 34, 28, 0.12);
+    }
+    .promo-card p {
+      margin: 0;
+      color: var(--muted-strong);
+      line-height: 1.6;
+      font-size: .96rem;
+    }
+    .promo-card a {
+      color: #2563eb;
+      font-weight: 800;
+      text-decoration: none;
     }
     .qr-card {
       justify-self: end;
@@ -393,28 +424,24 @@ def index_html() -> str:
       .hero { grid-template-columns: 1fr; padding: 2rem 1.4rem; }
       .qr-card { justify-self: start; }
       .output-wrap, .info-grid { grid-template-columns: 1fr; }
+      .promo-card { align-items: flex-start; flex-direction: column; }
+      .promo-card img { width: 100%; max-width: 180px; height: auto; }
       .parser-card, .info-card, .footer-card { padding: 1.35rem; }
       h1 { font-size: 1.7rem; }
     }
   </style>
 </head>
 <body>
-  <aside class="floating-ad" id="floatingAd">
+  <a class="floating-ad" id="floatingAd" href="https://gt.topgpt.us/archives/1765038037689" target="_blank" rel="noopener noreferrer">
     <button type="button" class="floating-ad-toggle" onclick="toggleFloatingAd(event)">×</button>
-    <h3>Open YB 知识库助手</h3>
-    <p>把元宝生成的公众号总结、视频 SRT、爆款拆解，一键变成 Markdown。</p>
-    <div class="floating-note"><a href="https://yb.topgpt.us/" target="_blank" rel="noreferrer">yb.topgpt.us</a></div>
-    <div style="display:flex; gap:12px; align-items:center; margin-top:12px;">
-      <img src="/static/qrcode.jpg" alt="AI 交流群二维码">
-      <p style="margin:0; font-size:.78rem;">扫码加好友进 AI 交流群<br><strong>备注：yb</strong></p>
-    </div>
-  </aside>
+    <img id="floatingAdImage" src="/static/bananaflow.jpg" alt="Nano Banana Flow 批量生图神器">
+  </a>
 
   <div class="page">
     <header class="hero card">
       <div>
         <div class="hero-brand">
-          <div class="brand-icon">YB</div>
+          <div class="brand-icon"><img src="/static/open-yb-logo.svg" alt="Open YB Logo"></div>
           <div>
             <h1>Open YB 元宝研究员</h1>
             <div class="hero-subtitle"><span>⚡</span> 元宝分享页解析 · Markdown 导出</div>
@@ -425,6 +452,15 @@ def index_html() -> str:
           <div class="invite-tip">电脑端打不开？粘贴元宝链接即可解析</div>
           <div class="member-tip">会员提示：想批量整理素材，建议先在微信里让元宝按固定模板输出</div>
         </div>
+        <section class="promo-card">
+          <img src="/static/buymeacoffee.jpg" alt="Buy me a coffee">
+          <p>
+            立即下载 banana flow<br>
+            💻 <a href="https://gt.topgpt.us/archives/1765038037689" target="_blank" rel="noopener noreferrer">2.0 视频演示</a>
+            &nbsp; 🆕 图文教程 2.0<br>
+            如果觉得这个工具有用，可以请我喝一杯咖啡☕
+          </p>
+        </section>
       </div>
       <div class="qr-card">
         <img src="/static/qrcode.jpg" alt="AI 交流群二维码">
@@ -574,6 +610,8 @@ def index_html() -> str:
         ad.style.display = "none";
       } else {
         ad.classList.add("is-mini");
+        const image = document.getElementById("floatingAdImage");
+        if (image) image.src = "/static/bananaflowm.jpg";
       }
     }
   </script>
