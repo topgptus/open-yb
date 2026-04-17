@@ -13,8 +13,8 @@ async function init() {
 
   document.getElementById("save-settings").addEventListener("click", saveSettings);
   document.getElementById("select-all").addEventListener("click", selectAll);
-  document.getElementById("copy-selected").addEventListener("click", copySelected);
-  document.getElementById("download-selected").addEventListener("click", downloadSelected);
+  document.getElementById("batch-download-selected").addEventListener("click", batchDownloadSelected);
+  document.getElementById("merge-download-selected").addEventListener("click", mergeDownloadSelected);
   document.getElementById("delete-selected").addEventListener("click", deleteSelected);
 }
 
@@ -58,7 +58,7 @@ function renderFavorites() {
       </div>
       <div class="oyb-favorite-actions">
         <button type="button" data-action="copy" data-id="${escapeAttr(item.id)}">复制</button>
-        <button type="button" data-action="download" data-id="${escapeAttr(item.id)}">导出</button>
+        <button type="button" data-action="download" data-id="${escapeAttr(item.id)}">单篇导出</button>
         <button type="button" data-action="delete-one" data-id="${escapeAttr(item.id)}" class="oyb-danger">删除</button>
       </div>
     `;
@@ -96,20 +96,23 @@ function selectAll() {
   });
 }
 
-async function copySelected() {
+function batchDownloadSelected() {
   const selected = selectedFavorites();
   if (selected.length === 0) {
-    setStatus("请先勾选要合并的内容。");
+    setStatus("请先勾选要批量导出的内容。");
     return;
   }
-  await navigator.clipboard.writeText(collectionToMarkdown(selected));
-  setStatus(`已复制 ${selected.length} 篇合并 Markdown。`);
+  selected.forEach((item, index) => {
+    const fileName = `${String(index + 1).padStart(2, "0")}-${safeFileName(item.title || item.shareId || "yuanbao")}.md`;
+    window.setTimeout(() => downloadMarkdown(fileName, itemToMarkdown(item)), index * 120);
+  });
+  setStatus(`已开始批量导出 ${selected.length} 篇 Markdown。`);
 }
 
-function downloadSelected() {
+function mergeDownloadSelected() {
   const selected = selectedFavorites();
   if (selected.length === 0) {
-    setStatus("请先勾选要导出的内容。");
+    setStatus("请先勾选要合并导出的内容。");
     return;
   }
   downloadMarkdown(`open-yb-pure-${dateStamp()}.md`, collectionToMarkdown(selected));

@@ -144,7 +144,7 @@ https://yb.tencent.com/wx/ct/YFJCmiMxnhFCZJ
 
 ### 收藏库
 
-收藏库支持保存、复制、删除、单篇导出，也支持勾选多篇后复制合并 Markdown 或导出合并 Markdown，适合整理到知识库。
+收藏库支持保存、复制、删除、单篇导出，也支持勾选多篇后批量导出多个 Markdown 文件，或合并导出为一个 Markdown 文件，适合整理到知识库。
 
 <img src="docs/screenshots/favorites-library.png" alt="Open YB 收藏库" width="720">
 
@@ -218,7 +218,8 @@ Worker 和 skill 的区别：
 - 自动接管：访问 `https://yb.tencent.com/wx/ct/...` 或 `https://yuanbao.tencent.com/wx/ct/...` 时，插件会调用 Worker 的 `/api/parse` 解析正文。
 - 当前页操作：显示标题、问题、回答，支持一键复制正文、收藏、导出当前内容为 Markdown。
 - 收藏库：在插件设置页管理本地收藏，支持单篇复制、单篇导出、删除。
-- 合并导出：勾选多篇收藏后，可以复制合并 Markdown 或下载合并 Markdown 文件。
+- 批量导出：勾选多篇收藏后，逐篇导出多个 Markdown 文件。
+- 合并导出：勾选多篇收藏后，合并下载为一个 Markdown 文件。
 - 知识库友好：导出的 Markdown 可以直接放进 NotebookLM、Obsidian、Notion、Dify 知识库或其他 RAG / 笔记系统。
 
 ## 纯 Chrome 插件实验版
