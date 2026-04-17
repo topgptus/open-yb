@@ -410,6 +410,51 @@ def index_html() -> str:
     }
     .guide-card h3 { margin: 0 0 .8rem; font-size: 1rem; }
     .guide-card ul { margin: 0; padding-left: 1.2rem; color: var(--muted-strong); line-height: 1.75; font-size: .9rem; }
+    .extension-card { padding: 1.6rem 2rem; margin-bottom: 1.75rem; }
+    .extension-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 1.25rem;
+      align-items: center;
+    }
+    .extension-card h2 { margin: 0 0 .65rem; font-size: 1.35rem; }
+    .extension-card p { margin: 0; color: var(--muted); line-height: 1.7; }
+    .extension-steps {
+      margin: 1rem 0 0;
+      padding-left: 1.25rem;
+      color: var(--muted-strong);
+      line-height: 1.75;
+      font-size: .94rem;
+    }
+    .download-box {
+      display: grid;
+      gap: .75rem;
+      justify-items: stretch;
+      padding: 1rem;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+    }
+    .download-box img {
+      width: 72px;
+      height: 72px;
+      border-radius: 16px;
+      justify-self: center;
+      box-shadow: 0 10px 24px rgba(23, 34, 28, 0.12);
+    }
+    .download-link {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      background: var(--accent-gradient);
+      color: #fff;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 20px 44px rgba(31, 122, 85, .22);
+    }
+    .download-box small { color: var(--muted); line-height: 1.5; text-align: center; }
     .info-card { padding: 1.6rem 2rem; margin-bottom: 1.75rem; }
     .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .info-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 18px; padding: 1.15rem; }
@@ -424,9 +469,10 @@ def index_html() -> str:
       .hero { grid-template-columns: 1fr; padding: 2rem 1.4rem; }
       .qr-card { justify-self: start; }
       .output-wrap, .info-grid { grid-template-columns: 1fr; }
+      .extension-layout { grid-template-columns: 1fr; }
       .promo-card { align-items: flex-start; flex-direction: column; }
       .promo-card img { width: 100%; max-width: 180px; height: auto; }
-      .parser-card, .info-card, .footer-card { padding: 1.35rem; }
+      .parser-card, .extension-card, .info-card, .footer-card { padding: 1.35rem; }
       h1 { font-size: 1.7rem; }
     }
   </style>
@@ -494,6 +540,26 @@ def index_html() -> str:
             <li>整理成 Markdown 笔记，方便进入知识库。</li>
           </ul>
         </aside>
+      </div>
+    </section>
+
+    <section class="extension-card card">
+      <div class="extension-layout">
+        <div>
+          <h2>Chrome 插件下载</h2>
+          <p>更推荐电脑端长期使用 Chrome 插件。开启后，浏览器打开元宝分享页会优先尝试直接解析和展示原版内容，并提供复制正文、收藏、单篇导出、批量导出、合并导出 Markdown。</p>
+          <ol class="extension-steps">
+            <li>下载压缩包并解压到本地文件夹。</li>
+            <li>打开 Chrome 扩展程序页面：chrome://extensions/。</li>
+            <li>打开右上角“开发者模式”，点击“加载已解压的扩展程序”。</li>
+            <li>选择解压后的 extension 文件夹，勾选“接管元宝分享页”。</li>
+          </ol>
+        </div>
+        <div class="download-box">
+          <img src="/static/open-yb-logo.svg" alt="Open YB Chrome 插件">
+          <a class="download-link" href="/static/open-yb-chrome-extension.zip" download>下载插件压缩包</a>
+          <small>当前版本适合本地安装。Chrome 商店版本后续再考虑。</small>
+        </div>
       </div>
     </section>
 
