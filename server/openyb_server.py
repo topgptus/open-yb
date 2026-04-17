@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import mimetypes
 import os
 import traceback
 import urllib.parse
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any
 
 from parse_yuanbao import format_result, parse_yuanbao_share
@@ -30,6 +32,9 @@ class OpenYBHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path in ("", "/"):
             self.send_html(index_html())
+            return
+        if parsed.path.startswith("/static/"):
+            self.send_static(parsed.path)
             return
         if parsed.path == "/healthz":
             self.send_json({"ok": True, "service": "openyb"})
@@ -75,6 +80,19 @@ class OpenYBHandler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.NO_CONTENT)
         self.send_cors_headers()
         self.end_headers()
+
+    def do_HEAD(self) -> None:
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path in ("", "/", "/healthz"):
+            self.send_response(HTTPStatus.OK)
+            self.send_cors_headers()
+            self.send_header("content-type", "text/html; charset=utf-8")
+            self.end_headers()
+            return
+        if parsed.path.startswith("/static/"):
+            self.send_static(parsed.path, head_only=True)
+            return
+        self.send_error(HTTPStatus.NOT_FOUND, "Not found")
 
     def handle_parse(self, url: str, output_format: str) -> None:
         if not url.strip():
@@ -124,6 +142,23 @@ class OpenYBHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8"))
 
+    def send_static(self, request_path: str, head_only: bool = False) -> None:
+        name = request_path.removeprefix("/static/").strip("/")
+        if not name or "/" in name or "\\" in name:
+            self.send_error(HTTPStatus.NOT_FOUND, "Not found")
+            return
+        path = Path(__file__).resolve().parent / "static" / name
+        if not path.is_file():
+            self.send_error(HTTPStatus.NOT_FOUND, "Not found")
+            return
+        content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        self.send_response(HTTPStatus.OK)
+        self.send_header("content-type", content_type)
+        self.send_header("cache-control", "public, max-age=86400")
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(path.read_bytes())
+
     def send_cors_headers(self) -> None:
         self.send_header("access-control-allow-origin", "*")
         self.send_header("access-control-allow-methods", "GET, POST, OPTIONS")
@@ -139,83 +174,316 @@ def index_html() -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open YB Server</title>
+  <title>Open YB - 元宝链接解析</title>
   <style>
-    :root { color-scheme: light; }
+    :root {
+      color-scheme: light;
+      --bg: radial-gradient(circle at 12% 18%, #f5faf7 0%, #eef7f2 38%, #f4f7fb 100%);
+      --card: #ffffff;
+      --glass: rgba(255, 255, 255, 0.76);
+      --accent: #1f7a55;
+      --accent-strong: #15583e;
+      --accent-soft: rgba(31, 122, 85, 0.12);
+      --accent-gradient: linear-gradient(135deg, #1f7a55 0%, #20a36b 48%, #0f766e 100%);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(125, 145, 130, 0.18);
+      --text: #17221c;
+      --muted: #5d6b62;
+      --muted-strong: #435349;
+    }
+    * { box-sizing: border-box; }
     body {
-      background: #f3f6f1;
-      color: #1c211b;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
       margin: 0;
-      padding: 36px 18px 60px;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    main { max-width: 980px; margin: 0 auto; }
-    h1 { font-size: 42px; margin: 0 0 8px; }
-    p { color: #566258; line-height: 1.7; }
-    .panel {
-      background: #fff;
-      border: 1px solid #d8ded3;
-      border-radius: 8px;
-      padding: 22px;
-      margin-top: 18px;
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem 4rem;
     }
-    .row { display: flex; gap: 12px; }
-    input {
-      border: 1px solid #cbd6cc;
-      border-radius: 8px;
-      box-sizing: border-box;
-      flex: 1;
-      font: inherit;
-      min-height: 44px;
-      padding: 10px 12px;
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: 0 32px 110px rgba(23, 34, 28, 0.08);
     }
-    button {
-      background: #1f6b48;
-      border: 1px solid #1f6b48;
-      border-radius: 8px;
+    .floating-ad {
+      position: fixed;
+      left: 24px;
+      top: 120px;
+      z-index: 1000;
+      width: 250px;
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(20, 83, 45, 0.94), rgba(15, 118, 110, 0.9));
+      color: #ffffff;
+      box-shadow: 0 18px 45px rgba(23, 34, 28, 0.22);
+    }
+    .floating-ad h3 { margin: 0 0 10px; font-size: 1.15rem; }
+    .floating-ad p { margin: 0 0 12px; color: rgba(255,255,255,.82); line-height: 1.55; font-size: .88rem; }
+    .floating-ad a { color: #d9f99d; font-weight: 700; text-decoration: none; }
+    .floating-ad img { width: 92px; height: 92px; object-fit: cover; border-radius: 12px; background: #fff; }
+    .floating-ad-toggle {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 2px solid #fecaca;
+      background: #ef4444;
       color: #fff;
       cursor: pointer;
-      font: inherit;
-      min-height: 44px;
-      padding: 10px 16px;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.55);
     }
-    button.secondary { background: #fff; color: #1f6b48; }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .floating-ad.is-mini { width: 128px; padding: 12px; bottom: 80px; top: auto; }
+    .floating-ad.is-mini h3, .floating-ad.is-mini p, .floating-ad.is-mini .floating-note { display: none; }
+    .floating-ad.is-mini img { width: 100px; height: 100px; }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 2rem;
+      align-items: center;
+      padding: 2.7rem 3rem;
+      margin-bottom: 1.75rem;
+    }
+    .hero-brand { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .brand-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-gradient);
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 12px 28px rgba(31, 122, 85, 0.22);
+    }
+    h1 { margin: 0; font-size: 2.1rem; line-height: 1.2; }
+    .hero-subtitle {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem .95rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: .4rem;
+      font-size: .92rem;
+    }
+    .hero-desc { color: var(--muted); line-height: 1.75; font-size: 1rem; margin: 0; }
+    .tip-row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin-top: 1.2rem; }
+    .invite-tip {
+      color: #dc2626;
+      font-size: .92rem;
+      font-weight: 700;
+      padding: .62rem 1rem;
+      background: rgba(239, 68, 68, .08);
+      border: 1px solid rgba(239, 68, 68, .18);
+      border-radius: 10px;
+    }
+    .member-tip {
+      color: #166534;
+      font-size: .92rem;
+      font-weight: 700;
+      padding: .62rem 1rem;
+      background: rgba(34, 197, 94, .1);
+      border: 1px solid rgba(34, 197, 94, .18);
+      border-radius: 10px;
+    }
+    .qr-card {
+      justify-self: end;
+      width: 190px;
+      padding: 1.25rem;
+      text-align: center;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      backdrop-filter: blur(18px);
+    }
+    .qr-card img { width: 132px; height: 132px; object-fit: cover; border-radius: 18px; display: block; margin: 0 auto .8rem; }
+    .qr-card span { color: var(--muted); font-size: .82rem; line-height: 1.55; }
+    .qr-card strong { color: #dc2626; }
+    .parser-card { padding: 1.8rem 2rem; margin-bottom: 1.75rem; }
+    .search-form { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+    .input-wrapper { position: relative; flex: 1 1 520px; }
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem 3rem 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid transparent;
+      background: #f8fafc;
+      font: inherit;
+      font-size: 1rem;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      background: #fff;
+      border-color: rgba(31, 122, 85, .35);
+      box-shadow: 0 0 0 5px rgba(31, 122, 85, .11);
+    }
+    .clear-btn {
+      position: absolute;
+      right: .65rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(125, 145, 130, .14);
+      color: var(--muted-strong);
+      cursor: pointer;
+    }
+    button {
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      min-height: 48px;
+      padding: .9rem 1.35rem;
+      transition: transform .2s, box-shadow .2s;
+    }
+    button:hover { transform: translateY(-1px); }
+    .parse-btn { background: var(--accent-gradient); color: #fff; box-shadow: 0 20px 44px rgba(31, 122, 85, .26); }
+    .secondary { background: rgba(31, 122, 85, .1); color: var(--accent); }
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
+    .status { color: var(--muted); min-height: 26px; margin: 1rem 0 .8rem; }
+    .output-wrap { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr) 260px; align-items: stretch; }
     pre {
-      background: #f7f8f5;
-      border: 1px solid #d8ded3;
-      border-radius: 8px;
-      line-height: 1.75;
-      min-height: 260px;
+      background: #f7faf8;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      color: #1f2a24;
+      line-height: 1.76;
+      margin: 0;
+      min-height: 320px;
       overflow: auto;
-      padding: 16px;
+      padding: 1.2rem;
       white-space: pre-wrap;
       word-break: break-word;
     }
-    .status { min-height: 24px; }
-    @media (max-width: 720px) {
-      .row { flex-direction: column; }
+    .guide-card {
+      background: linear-gradient(180deg, #ffffff, #f8fbf9);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.2rem;
+    }
+    .guide-card h3 { margin: 0 0 .8rem; font-size: 1rem; }
+    .guide-card ul { margin: 0; padding-left: 1.2rem; color: var(--muted-strong); line-height: 1.75; font-size: .9rem; }
+    .info-card { padding: 1.6rem 2rem; margin-bottom: 1.75rem; }
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .info-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 18px; padding: 1.15rem; }
+    .info-item h3 { margin: 0 0 .55rem; font-size: 1rem; }
+    .info-item p { margin: 0; color: var(--muted); line-height: 1.65; font-size: .9rem; }
+    .footer-card { padding: 1.6rem 2rem; text-align: center; color: var(--muted); }
+    .footer-card a { color: var(--accent); font-weight: 800; text-decoration: none; }
+    .footer-card .star { display: inline-block; margin-top: .55rem; padding: .5rem .8rem; border-radius: 999px; background: var(--accent-soft); }
+    @media (max-width: 1280px) { .floating-ad { display: none; } }
+    @media (max-width: 760px) {
+      .page { padding: 2rem 1rem 3rem; }
+      .hero { grid-template-columns: 1fr; padding: 2rem 1.4rem; }
+      .qr-card { justify-self: start; }
+      .output-wrap, .info-grid { grid-template-columns: 1fr; }
+      .parser-card, .info-card, .footer-card { padding: 1.35rem; }
+      h1 { font-size: 1.7rem; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Open YB Server</h1>
-    <p>粘贴腾讯元宝分享链接，解析成可复制的文本或 Markdown。支持 <code>yb.tencent.com/wx/ct/...</code> 和 <code>yuanbao.tencent.com/wx/ct/...</code>。</p>
-    <section class="panel">
-      <div class="row">
-        <input id="url" placeholder="https://yb.tencent.com/wx/ct/..." autocomplete="off">
-        <button id="parse">解析</button>
+  <aside class="floating-ad" id="floatingAd">
+    <button type="button" class="floating-ad-toggle" onclick="toggleFloatingAd(event)">×</button>
+    <h3>Open YB 知识库助手</h3>
+    <p>把元宝生成的公众号总结、视频 SRT、爆款拆解，一键变成 Markdown。</p>
+    <div class="floating-note"><a href="https://yb.topgpt.us/" target="_blank" rel="noreferrer">yb.topgpt.us</a></div>
+    <div style="display:flex; gap:12px; align-items:center; margin-top:12px;">
+      <img src="/static/qrcode.jpg" alt="AI 交流群二维码">
+      <p style="margin:0; font-size:.78rem;">扫码加好友进 AI 交流群<br><strong>备注：yb</strong></p>
+    </div>
+  </aside>
+
+  <div class="page">
+    <header class="hero card">
+      <div>
+        <div class="hero-brand">
+          <div class="brand-icon">YB</div>
+          <div>
+            <h1>Open YB 元宝研究员</h1>
+            <div class="hero-subtitle"><span>⚡</span> 元宝分享页解析 · Markdown 导出</div>
+          </div>
+        </div>
+        <p class="hero-desc">支持腾讯元宝微信分享链接。粘贴链接即可解析正文，复制、下载 Markdown，并导入 NotebookLM、Obsidian、Notion、Dify 或自己的 RAG 知识库。</p>
+        <div class="tip-row">
+          <div class="invite-tip">电脑端打不开？粘贴元宝链接即可解析</div>
+          <div class="member-tip">会员提示：想批量整理素材，建议先在微信里让元宝按固定模板输出</div>
+        </div>
+      </div>
+      <div class="qr-card">
+        <img src="/static/qrcode.jpg" alt="AI 交流群二维码">
+        <span>扫码加好友会拉你进群<br>人工添加所以会有延迟<br><strong>务必备注：yb</strong></span>
+      </div>
+    </header>
+
+    <section class="parser-card card">
+      <div class="search-form">
+        <div class="input-wrapper">
+          <input id="url" type="text" placeholder="粘贴腾讯元宝分享链接：https://yb.tencent.com/wx/ct/..." autocomplete="off">
+          <button class="clear-btn" type="button" onclick="clearInput()">×</button>
+        </div>
+        <button id="parse" class="parse-btn" type="button">解析</button>
       </div>
       <div class="actions">
-        <button class="secondary" id="copy">复制正文</button>
-        <button class="secondary" id="copy-md">复制 Markdown</button>
-        <button class="secondary" id="download">下载 MD</button>
+        <button class="secondary" id="copy" type="button">复制正文</button>
+        <button class="secondary" id="copy-md" type="button">复制 Markdown</button>
+        <button class="secondary" id="download" type="button">下载 MD</button>
+        <button class="secondary" id="api" type="button">复制 API</button>
       </div>
       <p id="status" class="status">等待输入链接。</p>
-      <pre id="output"></pre>
+      <div class="output-wrap">
+        <pre id="output">示例：先把公众号文章、视频号或网页转发给元宝，让它总结、提炼 SRT、拆解文案结构，再把元宝分享链接粘贴到这里。</pre>
+        <aside class="guide-card">
+          <h3>推荐提示词</h3>
+          <ul>
+            <li>总结核心观点、项目地址、关键步骤和标签。</li>
+            <li>提炼视频完整 SRT，必须带时间轴。</li>
+            <li>拆解视频结构、文案逻辑和爆款卖点。</li>
+            <li>整理成 Markdown 笔记，方便进入知识库。</li>
+          </ul>
+        </aside>
+      </div>
     </section>
-  </main>
+
+    <section class="info-card card">
+      <div class="info-grid">
+        <div class="info-item">
+          <h3>原生微信素材</h3>
+          <p>利用元宝读取公众号、视频号和网页内容，再把结果带回电脑。</p>
+        </div>
+        <div class="info-item">
+          <h3>AI 笔记友好</h3>
+          <p>导出 Markdown 后可放入 NotebookLM、Obsidian、Notion 或 Dify。</p>
+        </div>
+        <div class="info-item">
+          <h3>后续可扩展</h3>
+          <p>如需云端收藏夹、账号体系或批量任务，可以继续基于这个服务端扩展。</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer-card card">
+      <div>Open YB · 运行域名：<a href="https://yb.topgpt.us/" target="_blank" rel="noreferrer">yb.topgpt.us</a></div>
+      <div class="star">项目开源在 <a href="https://github.com/topgptus/open-yb" target="_blank" rel="noreferrer">github.com/topgptus/open-yb</a>，欢迎点击 Star 支持。</div>
+    </footer>
+  </div>
+
   <script>
     let current = null;
     const $ = (id) => document.getElementById(id);
@@ -242,6 +510,22 @@ def index_html() -> str:
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
       status("已生成 Markdown 下载。");
     });
+    $("api").addEventListener("click", async () => {
+      const url = $("url").value.trim();
+      if (!url) {
+        status("请先粘贴元宝分享链接。");
+        return;
+      }
+      await navigator.clipboard.writeText(`${location.origin}/api/parse?url=${encodeURIComponent(url)}`);
+      status("已复制 API 地址。");
+    });
+
+    function clearInput() {
+      $("url").value = "";
+      $("output").textContent = "";
+      current = null;
+      status("等待输入链接。");
+    }
 
     async function parse() {
       const url = $("url").value.trim();
@@ -281,6 +565,16 @@ def index_html() -> str:
 
     function safeFileName(value) {
       return String(value).trim().replace(/[\\\\/:*?"<>|]+/g, "-").replace(/\\s+/g, " ").slice(0, 80) || "yuanbao";
+    }
+
+    function toggleFloatingAd(event) {
+      event.preventDefault();
+      const ad = document.getElementById("floatingAd");
+      if (ad.classList.contains("is-mini")) {
+        ad.style.display = "none";
+      } else {
+        ad.classList.add("is-mini");
+      }
     }
   </script>
 </body>
