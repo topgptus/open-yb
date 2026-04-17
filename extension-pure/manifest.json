@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Open YB Pure",
+  "description": "纯 Chrome 插件版：不依赖 Worker，尝试在浏览器扩展内直接解析腾讯元宝微信分享页。",
+  "version": "0.1.0",
+  "homepage_url": "https://github.com/topgptus/open-yb",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open YB Pure",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "permissions": [
+    "declarativeNetRequestWithHostAccess",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://yb.tencent.com/wx/ct/*",
+    "https://yuanbao.tencent.com/wx/ct/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://yb.tencent.com/wx/ct/*",
+        "https://yuanbao.tencent.com/wx/ct/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

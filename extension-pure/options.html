@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Open YB Pure 收藏库</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="oyb-extension">
+    <main class="oyb-options">
+      <header class="oyb-options-header">
+        <div>
+          <p class="oyb-kicker">Open YB Pure</p>
+          <h1>元宝收藏库</h1>
+          <a class="oyb-project-link" href="https://github.com/topgptus/open-yb" target="_blank" rel="noreferrer">github.com/topgptus/open-yb</a>
+        </div>
+        <div class="oyb-actions">
+          <button id="select-all" type="button">全选</button>
+          <button id="copy-selected" type="button">复制合并 MD</button>
+          <button id="download-selected" type="button">导出合并 MD</button>
+          <button id="delete-selected" type="button" class="oyb-danger">删除</button>
+        </div>
+      </header>
+
+      <section class="oyb-settings">
+        <label class="oyb-switch">
+          <input id="enabled" type="checkbox">
+          <span>纯插件接管元宝分享页</span>
+        </label>
+        <button id="save-settings" type="button">保存设置</button>
+      </section>
+
+      <p id="options-status" class="oyb-status"></p>
+      <section id="favorites-list" class="oyb-list"></section>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
