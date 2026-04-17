@@ -233,7 +233,9 @@ extension-pure/
 
 1. 用 `declarativeNetRequest` 给元宝分享页请求加微信 WebView 风格请求头。
 2. 在 background service worker 里直接请求元宝分享页 HTML。
-3. 解析 `__NEXT_DATA__` 并在当前页面展示正文。
+3. 解析 `__NEXT_DATA__`，但尽量保留元宝原版页面显示，只在页面右上角加一个 Open YB Pure 悬浮工具条。
+
+纯插件版的页面阅读体验会更接近手机微信里看到的元宝原版样式。悬浮工具条只负责复制正文、收藏、导出 Markdown 和打开收藏库；导出 MD 时才会使用整理后的 Markdown 格式。
 
 安装方式和普通插件一样：打开 `chrome://extensions/`，开启开发者模式，加载 `extension-pure/` 目录。
 
