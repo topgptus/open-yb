@@ -1,16 +1,14 @@
-const DEFAULT_WORKER_URL = "https://your-worker.workers.dev";
-
 let favorites = [];
 
 const enabled = document.getElementById("enabled");
-const workerUrl = document.getElementById("worker-url");
 const status = document.getElementById("options-status");
 const list = document.getElementById("favorites-list");
 
 init();
 
 async function init() {
-  await loadSettings();
+  const settings = await chrome.storage.sync.get({ enabled: true });
+  enabled.checked = settings.enabled;
   await loadFavorites();
 
   document.getElementById("save-settings").addEventListener("click", saveSettings);
@@ -20,46 +18,13 @@ async function init() {
   document.getElementById("delete-selected").addEventListener("click", deleteSelected);
 }
 
-async function loadSettings() {
-  const settings = await chrome.storage.sync.get({
-    enabled: true,
-    workerBaseUrl: DEFAULT_WORKER_URL,
-  });
-  enabled.checked = settings.enabled;
-  workerUrl.value = settings.workerBaseUrl;
-}
-
 async function saveSettings() {
-  const nextUrl = normalizeWorkerBaseUrl(workerUrl.value);
-  const granted = await requestWorkerPermission(nextUrl);
-  if (!granted) {
-    setStatus("未获得该 Worker 域名权限，插件可能无法请求这个地址。");
-    return;
-  }
-
-  await chrome.storage.sync.set({
-    enabled: enabled.checked,
-    workerBaseUrl: nextUrl,
-  });
-  workerUrl.value = nextUrl;
-  setStatus("设置已保存。");
-}
-
-async function requestWorkerPermission(workerBaseUrl) {
-  const origin = workerOriginPattern(workerBaseUrl);
-  if (!origin) return false;
-  const permission = { origins: [origin] };
-  const hasPermission = await chrome.permissions.contains(permission);
-  if (hasPermission) return true;
-  return chrome.permissions.request(permission);
-}
-
-function workerOriginPattern(workerBaseUrl) {
-  try {
-    return `${new URL(workerBaseUrl).origin}/*`;
-  } catch {
-    return "";
-  }
+  await chrome.storage.sync.set({ enabled: enabled.checked });
+  const response = await chrome.runtime.sendMessage({ type: "OPEN_YB_SYNC_RULE" }).catch((error) => ({
+    ok: false,
+    error: error.message || String(error),
+  }));
+  setStatus(response?.ok ? "设置已保存。" : `设置已保存，但同步请求头规则失败：${response?.error || "未知错误"}`);
 }
 
 async function loadFavorites() {
@@ -70,7 +35,6 @@ async function loadFavorites() {
 
 function renderFavorites() {
   list.innerHTML = "";
-
   if (favorites.length === 0) {
     list.innerHTML = `<p class="oyb-empty">还没有收藏。打开元宝分享页后点击“收藏”。</p>`;
     setStatus("收藏 0 篇。");
@@ -115,12 +79,10 @@ async function handleRowAction(event) {
     await navigator.clipboard.writeText(itemToMarkdown(item));
     setStatus("已复制这篇 Markdown。");
   }
-
   if (event.currentTarget.dataset.action === "download") {
     downloadMarkdown(`${safeFileName(item.title || item.shareId || "yuanbao")}.md`, itemToMarkdown(item));
     setStatus("已导出这篇 Markdown。");
   }
-
   if (event.currentTarget.dataset.action === "delete-one") {
     await removeFavorites([id]);
   }
@@ -199,15 +161,8 @@ function itemToMarkdown(item) {
     item.savedAt ? `保存：${formatDate(item.savedAt)}` : "",
     "",
   ].filter((line, index, array) => line || array[index - 1] !== "");
-
-  if (item.questionText) {
-    lines.push("### 问题", "", item.questionText, "");
-  }
-
-  if (item.answerText) {
-    lines.push("### 回答", "", item.answerText, "");
-  }
-
+  if (item.questionText) lines.push("### 问题", "", item.questionText, "");
+  if (item.answerText) lines.push("### 回答", "", item.answerText, "");
   return `${lines.join("\n").trim()}\n`;
 }
 
@@ -219,17 +174,6 @@ function downloadMarkdown(fileName, markdown) {
   link.download = fileName;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function normalizeWorkerBaseUrl(value) {
-  const trimmed = String(value || DEFAULT_WORKER_URL).trim().replace(/\/+$/, "");
-  try {
-    const url = new URL(trimmed);
-    url.hostname = url.hostname.replace(/\.+$/, "");
-    return url.origin + url.pathname.replace(/\/+$/, "");
-  } catch {
-    return DEFAULT_WORKER_URL.replace(/\.+$/, "");
-  }
 }
 
 function setStatus(message) {

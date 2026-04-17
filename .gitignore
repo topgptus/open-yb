@@ -2,5 +2,7 @@ snapshots/
 .wrangler/
 node_modules/
 .DS_Store
+__pycache__/
+*.py[cod]
 *.crx
 *.pem

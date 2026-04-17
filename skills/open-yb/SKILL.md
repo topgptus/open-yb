@@ -58,7 +58,7 @@ The script requests the share page with a WeChat WebView User-Agent, extracts th
 
 Default fetch mode is `--fetch-engine auto`: try Python `urllib` first, then fall back to `curl` when Python's local SSL certificate chain fails. Use `--fetch-engine curl` directly on macOS/Linux machines where Python HTTPS verification is broken.
 
-The Cloudflare Worker remains useful for browser plugins and HTTP APIs. This skill is for local agent workflows.
+This skill is for local agent workflows and does not depend on any hosted service.
 
 ## Output guidance
 

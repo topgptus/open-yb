@@ -1,96 +1,48 @@
 # Open YB
 
-Open YB 是一个把腾讯元宝微信分享链接转成浏览器可读内容的小工具。它由两部分组成：
+Open YB 是一个把腾讯元宝微信分享链接带回电脑和本地自动化流程的小工具。
 
-- Cloudflare Worker：负责解析元宝公开分享页里的纯文本内容。
-- Chrome 插件：负责在 Windows / macOS 的 Chrome 里接管元宝链接，显示内容、复制、收藏、导出 Markdown。
+现在项目只保留两个主功能：
+
+- `extension/`：Chrome 插件。在 Windows / macOS 的 Chrome 中打开元宝分享页，尽量保留元宝原版页面，同时提供复制、收藏、导出 Markdown。
+- `skills/open-yb/`：本地 Agent Skill。给 Codex、Claude Code、OpenClaw 或自己的脚本使用，把元宝 URL 解析成 Markdown、JSON 或纯文本。
 
 项目地址：<https://github.com/topgptus/open-yb>
 
-示例链接：
+## 为什么做这个
+
+腾讯元宝分享页在普通电脑浏览器里经常提示：
 
 ```text
-https://yb.tencent.com/wx/ct/YFJCmiMxnhFCZJ
+请在微信客户端打开该链接
 ```
 
-腾讯元宝分享页在普通电脑浏览器里通常会提示“请在微信客户端打开该链接”。Open YB 的目标就是把这个过程变简单：你在微信里把公众号文章、视频号内容或其他素材转发给元宝，让元宝总结、概括、提炼信息；再把元宝生成的分享链接放到电脑浏览器里打开，插件会自动调用 Worker 解析出正文，最后可以复制、收藏或导出 Markdown，放进知识库、NotebookLM、Obsidian、Notion 等工具里继续使用。
+但实际工作流里，我们经常会在微信里把公众号文章、视频号、网页、聊天内容转发给元宝，让它总结、提炼、拆解视频文案、整理项目地址和标签。元宝生成的结果很有价值，但如果只能在手机里看，后续放进知识库、NotebookLM、Obsidian、Notion 或本地 agent 流程就比较麻烦。
 
-Worker 会使用微信 WebView User-Agent 请求分享页，读取服务端渲染 HTML 中的 `__NEXT_DATA__`，再提取标题、用户问题、元宝回答、图片链接和部分元数据。
+Open YB 的目标很简单：
 
-以前整理微信视频号或公众号内容，常见做法是下载视频、找字幕工具、装浏览器插件、用付费提取工具，再手动整理成笔记。现在可以换一种更轻的方式：直接利用微信里的元宝多模态能力，让元宝先帮你看文章、看视频、总结内容、拆解文案，再用 Open YB 把元宝结果转成电脑端可复制、可收藏、可导出的 Markdown。
+```text
+微信转发给元宝 -> Chrome 打开元宝分享链接 -> 复制 / 收藏 / 导出 MD
+```
 
-你也可以发挥自己的脑洞，充分利用微信原生态多模态模型来提升效率。Open YB 不限定你怎么问元宝，只负责把元宝已经生成的分享结果带回浏览器和知识库。
+不用下载视频，不用复杂插件链路，也不用先部署服务。
 
-## 典型工作流
+## 推荐工作流
 
 1. 在微信里添加腾讯元宝好友。
-2. 看到有价值的微信公众号文章、视频号、聊天内容或网页素材时，直接转发给元宝。
-3. 转发时配上合适提示词，例如：
+2. 看到值得整理的公众号文章、视频号或网页，直接转发给元宝。
+3. 转发时配上你的提示词，例如“总结核心观点”“提炼项目地址”“拆解视频文案结构”。
+4. 元宝生成回答后，拿到 `https://yb.tencent.com/wx/ct/...` 分享链接。
+5. 在电脑 Chrome 中打开这个链接。
+6. Open YB 插件会尝试保留元宝原版页面，并在右上角提供工具条。
+7. 一键复制、收藏或导出 Markdown。
+8. 把 Markdown 放进知识库、NotebookLM、Obsidian、Notion、Dify 或本地 agent 流程。
 
-```text
-请总结这篇文章的核心观点，提炼项目地址、关键步骤、适合人群和标签。
-```
+## Chrome 插件
 
-```text
-请概括这条视频的核心内容，拆解它的文案结构、开头钩子、转折点和行动号召。
-```
+### 安装
 
-```text
-请把这篇内容整理成 Markdown 笔记，包含摘要、要点、可执行步骤、关键词和延伸问题。
-```
-
-4. 元宝生成回答后，拿到 `yb.tencent.com/wx/ct/...` 分享链接。
-5. 在 Windows 或 macOS 的 Chrome 中打开这个链接。
-6. Open YB 插件自动接管页面，调用你部署的 Worker，把内容转成可阅读文本。
-7. 一键复制、收藏，或导出 Markdown。
-8. 把 Markdown 放入知识库、NotebookLM、Obsidian、Notion 或其他资料库。
-
-这个流程适合把原本需要手机打开、手动复制、反复整理的微信内容处理过程，变成“微信转发给元宝 -> 电脑浏览器打开 -> 导出 MD”的轻量链路。
-
-## 功能
-
-- Web UI：粘贴元宝分享链接，页面显示解析出的回答文本。
-- 一键复制：复制解析出的元宝回答。
-- JSON API：传入元宝 URL，返回结构化内容。
-- Text API：传入元宝 URL，返回纯文本回答。
-- CORS：API 默认允许跨域调用。
-- Chrome 插件：打开元宝微信分享链接时自动接管页面，显示正文、复制、收藏和导出 Markdown。
-- 纯 Chrome 插件实验版：不依赖 Worker，尝试直接在扩展内抓取并解析元宝页面。
-- 本地 Agent Skill：给 Codex、Claude Code、OpenClaw 等本地 agent 使用，不依赖 Worker，直接把元宝 URL 解析成 Markdown、JSON 或纯文本。
-
-## 快速开始
-
-### 1. 部署 Worker
-
-先注册并登录 Cloudflare。不会注册也没关系，直接搜索“Cloudflare 注册”和“Cloudflare 手动创建 Worker”即可，Cloudflare 后台可以直接在线创建 Worker。
-
-最简单的方式：
-
-1. 打开 Cloudflare Workers。
-2. 新建一个 Worker。
-3. 把本项目的 `worker.js` 内容复制进去。
-4. 保存并部署。
-5. 复制部署后的 Worker 地址，后面填到 Chrome 插件里。
-
-如果你熟悉命令行，也可以在本仓库中用 Wrangler 部署：
-
-```bash
-npx wrangler deploy worker.js --name open-yb
-```
-
-部署后会得到一个 Worker 地址，例如：
-
-```text
-https://your-worker.workers.dev
-```
-
-本项目默认不配置 API Key。目的是让个人使用时足够简单：复制 `worker.js`、部署 Worker、安装 Chrome 插件、填入 Worker 地址即可。Cloudflare Worker 的免费额度通常足够个人和小团队日常使用，具体额度以 Cloudflare 后台当前说明为准。如果你要公开给多人使用，可以自行在 Worker 前面加访问控制、Cloudflare Access、Key 校验或限流。
-
-### 2. 安装 Chrome 插件
-
-`extension/` 目录提供了一个 Manifest V3 Chrome 插件，用于把“请在微信客户端打开该链接”的页面变成可阅读、可收藏、可导出的阅读器。
-
-1. 打开 Chrome 的扩展管理页：
+1. 打开 Chrome 扩展管理页：
 
 ```text
 chrome://extensions/
@@ -98,59 +50,49 @@ chrome://extensions/
 
 2. 打开“开发者模式”。
 3. 点击“加载已解压的扩展程序”。
-4. 选择本仓库的 `extension/` 目录。
-5. 点击浏览器工具栏里的 Open YB 图标，确认 Worker 地址正确。
+4. 选择本仓库里的 `extension/` 目录。
+5. 点击浏览器工具栏里的 Open YB 图标，确认“接管元宝分享页”已开启。
 
-### 3. 配置插件
+### 使用
 
-1. 点击 Chrome 工具栏里的 Open YB 图标。
-2. 打开“接管元宝分享页”。
-3. 填入你自己的 Worker 地址，例如：
+在 Chrome 中打开元宝分享链接：
 
 ```text
-https://your-worker.workers.dev
+https://yb.tencent.com/wx/ct/...
 ```
 
-4. 保存设置。
-5. 如果 Chrome 弹出域名访问权限确认，同意即可。
+插件会尝试用微信 WebView 风格请求头打开页面，并解析页面里的内容。页面阅读体验尽量保持元宝原版显示，右上角会出现 Open YB 工具条：
 
-### 4. 打开元宝分享链接
-
-1. 保持插件开关为开启。
-2. 在 Chrome 中打开元宝分享链接：
-
-```text
-https://yb.tencent.com/wx/ct/YFJCmiMxnhFCZJ
-```
-
-3. 插件会覆盖原来的限制页，并显示 Worker 解析出的内容。
-4. 点击“复制正文”可以复制回答文本。
-5. 点击“收藏”会把内容保存到 Chrome 本地存储。
-6. 点击“设置”或插件弹窗里的“打开收藏库”，可以管理收藏、合并导出 Markdown。
-
-## 界面预览
-
-### 插件配置
-
-点击 Chrome 工具栏里的 Open YB 图标，可以配置 Worker 地址。勾选“接管元宝分享页”后，插件会自动接管 `yb.tencent.com/wx/ct/...` 页面；取消勾选则不会处理元宝链接。
-
-<img src="docs/screenshots/extension-popup.png" alt="Open YB 插件配置弹窗" width="720">
-
-### 浏览器阅读
-
-打开元宝分享链接后，插件会把原来的“请在微信客户端打开该链接”页面替换成可阅读页面。你可以复制正文、收藏，或者导出当前内容为 Markdown。
-
-<img src="docs/screenshots/reader-page.png" alt="Open YB 解析后的阅读页面" width="720">
+- `复制正文`：复制元宝回答文本。
+- `收藏`：保存当前内容到 Chrome 本地收藏库。
+- `导出 MD`：把当前内容导出为 Markdown。
+- `收藏库`：管理所有收藏内容。
 
 ### 收藏库
 
-收藏库支持保存、复制、删除、单篇导出，也支持勾选多篇后批量导出多个 Markdown 文件，或合并导出为一个 Markdown 文件，适合整理到知识库。
+收藏库保存在 Chrome 本地 `chrome.storage.local`，不上传云端。
 
-<img src="docs/screenshots/favorites-library.png" alt="Open YB 收藏库" width="720">
+支持：
+
+- 单篇复制
+- 单篇导出 Markdown
+- 删除单篇
+- 全选
+- 批量导出：选中多篇后，每篇分别下载成独立 Markdown 文件
+- 合并导出：选中多篇后，合成一个 Markdown 文件下载
+- 批量删除
+
+注意：如果换电脑、换浏览器用户或清空浏览器数据，收藏库不会自动同步。
+
+### 插件限制
+
+Open YB 插件能否成功，取决于 Chrome 是否允许扩展稳定影响元宝请求的 `User-Agent`。
+
+如果页面提示 `notInWX` 或仍然要求微信客户端打开，可以先刷新页面；如果仍失败，建议改用下面的本地 Agent Skill。
 
 ## 本地 Agent Skill
 
-如果你的目标是给 Codex、Claude Code、OpenClaw 或自己的自动化流程使用，其实可以不走 Worker。仓库里提供了一个本地 skill：
+如果你想让 Codex、Claude Code、OpenClaw 或自己的自动化脚本直接处理元宝 URL，用这个目录：
 
 ```text
 skills/open-yb/
@@ -159,16 +101,11 @@ skills/open-yb/
 它包含：
 
 - `SKILL.md`：给 agent 读取的使用说明。
-- `scripts/parse_yuanbao.py`：本地解析脚本，只使用 Python 标准库，不需要 pip 安装依赖。默认使用 `auto` 抓取模式：先试 Python `urllib`，如果遇到本机 Python SSL 证书问题，会自动 fallback 到 `curl`。
+- `scripts/parse_yuanbao.py`：本地解析脚本，只使用 Python 标准库，不需要 pip 安装依赖。
 
-适合这些场景：
+### 命令行示例
 
-- 在 Codex / Claude Code / OpenClaw 里直接丢一个元宝 URL，让 agent 读取正文。
-- 把元宝分享结果保存成 Markdown，进入知识库、NotebookLM、Obsidian、Notion。
-- 自动化批处理多个元宝链接，输出 JSON 给后续脚本使用。
-- 不想部署 Cloudflare Worker，只想在自己电脑上解析。
-
-使用示例：
+输出 Markdown：
 
 ```bash
 python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown
@@ -186,65 +123,37 @@ python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..
 python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format json
 ```
 
-保存为 Markdown 文件：
+保存成 Markdown 文件：
 
 ```bash
 python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown -o yuanbao-note.md
 ```
 
-如果遇到 Python SSL 证书问题，直接强制用 curl 抓取：
+如果你的 Python HTTPS 证书链有问题，可以强制用 `curl` 抓取：
 
 ```bash
 python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --format markdown --fetch-engine curl
 ```
 
-排障时也可以指定抓取层：
+### Agent 用法
 
-```bash
-python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --fetch-engine auto
-python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --fetch-engine urllib
-python3 skills/open-yb/scripts/parse_yuanbao.py "https://yb.tencent.com/wx/ct/..." --fetch-engine curl
-```
-
-Worker 和 skill 的区别：
-
-- Worker：适合 Chrome 插件、Web UI、HTTP API、跨设备访问。
-- Skill：适合本机 agent、命令行、自动化脚本、批量整理。
-
-## Chrome 插件能力
-
-- 开关控制：插件弹窗里可以开启或关闭元宝分享页接管。
-- Worker 配置：默认 Worker 地址为 `https://your-worker.workers.dev`，安装后需要改成你自己部署的 Worker。
-- 自动接管：访问 `https://yb.tencent.com/wx/ct/...` 或 `https://yuanbao.tencent.com/wx/ct/...` 时，插件会调用 Worker 的 `/api/parse` 解析正文。
-- 当前页操作：显示标题、问题、回答，支持一键复制正文、收藏、导出当前内容为 Markdown。
-- 收藏库：在插件设置页管理本地收藏，支持单篇复制、单篇导出、删除。
-- 批量导出：勾选多篇收藏后，逐篇导出多个 Markdown 文件。
-- 合并导出：勾选多篇收藏后，合并下载为一个 Markdown 文件。
-- 知识库友好：导出的 Markdown 可以直接放进 NotebookLM、Obsidian、Notion、Dify 知识库或其他 RAG / 笔记系统。
-
-## 纯 Chrome 插件实验版
-
-仓库里还有一个实验目录：
+把 `skills/open-yb/SKILL.md` 放进你的 agent skill 目录后，之后可以直接对 agent 说：
 
 ```text
-extension-pure/
+请用 open-yb 解析这个元宝链接，并整理成 Markdown 笔记：
+https://yb.tencent.com/wx/ct/...
 ```
 
-这个版本不依赖 Cloudflare Worker。它会尝试在 Chrome 插件内部完成三件事：
+适合：
 
-1. 用 `declarativeNetRequest` 给元宝分享页请求加微信 WebView 风格请求头。
-2. 在 background service worker 里直接请求元宝分享页 HTML。
-3. 解析 `__NEXT_DATA__`，但尽量保留元宝原版页面显示，只在页面右上角加一个 Open YB Pure 悬浮工具条。
-
-纯插件版的页面阅读体验会更接近手机微信里看到的元宝原版样式。悬浮工具条只负责复制正文、收藏、导出 Markdown 和打开收藏库；导出 MD 时才会使用整理后的 Markdown 格式。
-
-安装方式和普通插件一样：打开 `chrome://extensions/`，开启开发者模式，加载 `extension-pure/` 目录。
-
-注意：纯插件版是实验功能。它是否能成功，取决于 Chrome 是否允许扩展稳定影响 `User-Agent` 请求头。如果页面提示 `notInWX`，说明元宝没有把请求识别成微信 WebView，这时请继续使用 Worker 版插件或本地 skill。
+- 把元宝总结结果导入 NotebookLM / Obsidian / Notion。
+- 批量整理多个元宝分享链接。
+- 在 Codex / Claude Code / OpenClaw 中把微信内容转成可处理文本。
+- 接入自己的本地自动化流程。
 
 ## 提示词示例
 
-你可以根据素材类型给元宝不同的提示词。Open YB 不负责调用元宝生成内容，它只负责把元宝已经生成的分享结果在电脑浏览器中打开、整理和导出。
+Open YB 不负责调用元宝，它只负责把元宝已经生成的分享结果带回电脑。元宝阶段怎么问，决定了最后导出的内容质量。
 
 ### 公众号文章总结
 
@@ -258,16 +167,17 @@ extension-pure/
 6. 如果要放进知识库，建议的标题
 ```
 
-### 公众号项目提炼
+### 项目资料提炼
 
 ```text
 请总结这篇文章的核心观点，提炼：
 1. 项目地址
-2. 关键步骤
-3. 适合人群
-4. 核心内容
-5. 标签
-6. 可以直接放入知识库的 Markdown 笔记
+2. 解决的问题
+3. 核心功能
+4. 关键步骤
+5. 适合人群
+6. 技术标签
+7. 可以直接放入知识库的 Markdown 笔记
 ```
 
 ### 视频号内容概括
@@ -281,7 +191,7 @@ extension-pure/
 5. 适合二次创作的选题角度
 ```
 
-### 视频教程步骤和菜谱
+### 视频教程步骤
 
 ```text
 请总结这个视频的操作详细步骤。如果视频里包含菜谱，请提炼：
@@ -308,7 +218,7 @@ extension-pure/
 务必详细说明。
 ```
 
-### 视频 SRT 字幕提取
+### SRT 字幕提取
 
 ```text
 请帮我提炼这条视频的完整 SRT 字幕。
@@ -334,196 +244,33 @@ extension-pure/
 请给出详细分析。
 ```
 
-### 项目信息提炼
+## 项目结构
 
 ```text
-请从这条内容里提炼项目资料：
-1. 项目名称
-2. 项目地址
-3. 解决的问题
-4. 核心功能
-5. 部署或使用步骤
-6. 技术标签
-7. 适合收藏到知识库的 Markdown 版本
+open-yb/
+  extension/               Chrome 插件，主功能
+  skills/open-yb/          本地 Agent Skill
+  assets/qrcode.jpg        AI 交流群二维码
+  docs/screenshots/        文档截图素材
+  archive/cloudflare-worker/
+                            早期 Cloudflare Worker / API / Worker 版插件归档
 ```
 
-### 知识库笔记格式
+## 为什么 Cloudflare Worker 被归档
 
-```text
-请把这段内容整理成 Markdown 笔记，结构为：
-# 标题
-## 摘要
-## 核心要点
-## 操作步骤
-## 关键链接
-## 标签
-## 后续可以追问的问题
-```
+早期版本包含 Cloudflare Worker、Web UI、HTTP API 和 Worker 版 Chrome 插件。后面验证下来，对多数个人用户来说，这条链路过重：
 
-### 插件架构
+- 需要先注册 Cloudflare。
+- 需要复制和部署 Worker。
+- 插件还要配置 Worker 地址。
+- 网络环境不好时还可能遇到 `workers.dev` 连接问题。
 
-```mermaid
-flowchart LR
-  A["微信内容"] --> B["转发给元宝并写提示词"]
-  B --> C["元宝生成总结或分析"]
-  C --> D["获得 yb.tencent.com 分享链接"]
-  D --> E["Chrome 插件接管页面"]
-  E --> F["Worker 解析分享页"]
-  F --> G["浏览器显示正文"]
-  G --> H["复制 / 收藏 / 导出 Markdown"]
-```
+所以当前主版本先回到最简单的两个能力：
 
-插件本身不保存云端数据，收藏内容保存在 Chrome 本地 `chrome.storage.local`。如果换电脑或清空浏览器数据，收藏库不会自动同步。
+- 浏览器里用 Chrome 插件。
+- 自动化里用本地 skill。
 
-### 权限说明
-
-插件使用的权限：
-
-- `storage`：保存开关、Worker 地址和收藏内容。
-- `host_permissions`：允许在元宝分享页运行内容脚本，并请求默认 Worker 和 `workers.dev` 上的 Worker API。
-- `optional_host_permissions`：当你把 Worker 地址改成自定义域名时，插件会请求访问该 Worker 域名的权限。
-
-插件采用“内容脚本接管页面”的方式实现，不修改系统代理，也不接管非元宝域名的页面。
-
-### Worker 连接失败排查
-
-如果页面显示 `无法连接 Worker` 或浏览器控制台出现 `net::ERR_CONNECTION_CLOSED`，说明 Chrome 到 Worker 域名的 HTTPS 连接被断开，常见原因是：
-
-- Worker 地址写错，或部署还没有完成。
-- `workers.dev` 在当前网络环境不可达。
-- Worker 地址末尾带了多余的点，例如 `https://xxx.workers.dev.`。
-
-处理方式：
-
-1. 直接在 Chrome 打开插件提示里的“测试地址”。
-2. 如果测试地址能打开但插件仍失败，请在 `chrome://extensions/` 里重新加载 Open YB。
-3. 如果测试地址也打不开，先换网络或给 Worker 绑定自定义域名。
-4. 在插件弹窗里把 Worker 地址改成可访问的域名，例如 `https://yb.example.com`，并同意 Chrome 弹出的域名访问权限。
-
-插件请求 Worker 时会依次尝试扩展后台请求、内容脚本 CORS 请求、JSONP 桥接。JSONP 桥接需要 Worker 部署新版代码。
-
-## API
-
-### `GET /api/parse`
-
-```bash
-curl "https://<your-worker-domain>/api/parse?url=https%3A%2F%2Fyb.tencent.com%2Fwx%2Fct%2FYFJCmiMxnhFCZJ"
-```
-
-返回示例：
-
-```json
-{
-  "sourceUrl": "https://yb.tencent.com/wx/ct/YFJCmiMxnhFCZJ",
-  "shareId": "YFJCmiMxnhFCZJ",
-  "title": "改变世界的数学公式",
-  "description": "这17个公式是人类智慧结晶...",
-  "answerTime": "2026年04月16日",
-  "questionText": "请用纯文本来讲解一下这 17 个公式",
-  "answerText": "这17个公式是人类智慧结晶的巅峰代表...",
-  "messages": [],
-  "images": [],
-  "meta": {
-    "errCode": 0,
-    "expireTime": 1807420368,
-    "backendTraceId": ""
-  }
-}
-```
-
-### `POST /api/parse`
-
-```bash
-curl -X POST "https://<your-worker-domain>/api/parse" \
-  -H "content-type: application/json" \
-  -d '{"url":"https://yb.tencent.com/wx/ct/YFJCmiMxnhFCZJ"}'
-```
-
-### `GET /api/text`
-
-```bash
-curl "https://<your-worker-domain>/api/text?url=https%3A%2F%2Fyb.tencent.com%2Fwx%2Fct%2FYFJCmiMxnhFCZJ"
-```
-
-返回 `text/plain`，内容为解析出的元宝回答文本。
-
-## 本地开发
-
-安装 Wrangler 后运行：
-
-```bash
-npx wrangler dev worker.js
-```
-
-打开本地地址后，粘贴元宝分享 URL 即可测试。
-
-## Worker 部署
-
-```bash
-npx wrangler deploy worker.js --name open-yb
-```
-
-也可以创建 `wrangler.toml` 后部署：
-
-```toml
-name = "open-yb"
-main = "worker.js"
-compatibility_date = "2026-04-16"
-```
-
-## 元宝分享页绕过逻辑
-
-普通桌面浏览器或普通手机浏览器 User-Agent 请求 `https://yb.tencent.com/wx/ct/...` 时，服务端会返回：
-
-```json
-{
-  "err_code": "notInWX"
-}
-```
-
-页面文案通常是：
-
-```text
-请在微信客户端打开该链接
-```
-
-实测关键检查点是 User-Agent 里是否包含微信内置浏览器标识 `MicroMessenger/...`。Worker 因此使用类似下面的 UA 请求分享页：
-
-```text
-Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.49(0x1800312c) NetType/WIFI Language/zh_CN
-```
-
-这个方式可以让服务端返回公开分享内容，而不是客户端限制页。
-
-## 文本解析逻辑
-
-分享页是 Next.js 页面，正文数据在 HTML 的 `__NEXT_DATA__` 中。Worker 会：
-
-1. 请求分享页 HTML。
-2. 提取 `<script id="__NEXT_DATA__">...</script>`。
-3. 解析 JSON。
-4. 读取 `props.pageProps.data.conversation_info`。
-5. 优先从 `shareExtraDetailObj.chatInfo[].convs` 提取完整对话。
-6. 返回最后一条 `speaker === "ai"` 的文本作为 `answerText`。
-
-## 安全说明
-
-当前 Worker 只允许解析以下域名的 `/wx/ct/` 链接：
-
-- `yb.tencent.com`
-- `yuanbao.tencent.com`
-
-这样可以避免把 Worker 变成任意 URL 代理。
-
-## 文件
-
-- `worker.js`：Cloudflare Worker 源码，包含 Web UI 和 API。
-- `open-yb.mjs`：本地 Node 调试脚本，用相同 UA 抓取分享页并保存 HTML 快照。
-- `extension/`：Chrome 插件源码，包含页面接管、弹窗设置、收藏库和 Markdown 导出。
-- `extension-pure/`：纯 Chrome 插件实验版，不依赖 Worker，但可能受 Chrome 请求头限制影响。
-- `extension/icons/open-yb-logo.svg`：Chrome 插件 Logo 源文件。
-- `docs/screenshots/`：README 使用的插件界面截图。
-- `skills/open-yb/`：本地 Agent Skill，包含 `SKILL.md` 和 Python 解析脚本。
+Cloudflare 相关代码没有删除，放在 `archive/cloudflare-worker/`。后续如果要做 Cloudflare KV 云端收藏夹、云端知识库存储、公开 API 或团队同步，再从归档里继续演进会更合适。
 
 ## 加入 AI 交流群
 

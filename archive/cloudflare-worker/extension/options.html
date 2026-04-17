@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Open YB Pure 收藏库</title>
+    <title>Open YB 收藏库</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body class="oyb-extension">
     <main class="oyb-options">
       <header class="oyb-options-header">
         <div>
-          <p class="oyb-kicker">Open YB Pure</p>
+          <p class="oyb-kicker">Open YB</p>
           <h1>元宝收藏库</h1>
           <a class="oyb-project-link" href="https://github.com/topgptus/open-yb" target="_blank" rel="noreferrer">github.com/topgptus/open-yb</a>
         </div>
@@ -25,7 +25,11 @@
       <section class="oyb-settings">
         <label class="oyb-switch">
           <input id="enabled" type="checkbox">
-          <span>纯插件接管元宝分享页</span>
+          <span>接管元宝分享页</span>
+        </label>
+        <label class="oyb-field">
+          <span>Worker 地址</span>
+          <input id="worker-url" type="url" placeholder="https://your-worker.workers.dev">
         </label>
         <button id="save-settings" type="button">保存设置</button>
       </section>
