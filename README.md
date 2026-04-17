@@ -68,6 +68,26 @@ https://yb.tencent.com/wx/ct/...
 - `导出 MD`：把当前内容导出为 Markdown。
 - `收藏库`：管理所有收藏内容。
 
+### 效果对比
+
+不开启插件时，电脑端 Chrome 打开元宝分享链接通常只能看到“请在微信客户端打开该链接”。手机版微信里虽然可以直接阅读，但如果你想在电脑上复制、整理、导出到 AI 笔记或知识库，会很不方便。
+
+<p align="center">
+  <img src="docs/screenshots/without-extension.png" alt="未开启 Open YB 时，元宝链接要求在微信客户端打开" width="860">
+</p>
+
+开启 Open YB 后，Chrome 可以直接打开元宝分享页。页面尽量保留元宝原版阅读效果，同时提供复制正文、收藏、导出 Markdown 和打开收藏库。这样可以把元宝整理好的内容直接导入 NotebookLM、Obsidian、Notion、Dify、RAG 知识库或其他 AI 笔记工具。
+
+<p align="center">
+  <img src="docs/screenshots/extension-enabled.png" alt="开启 Open YB 后，Chrome 可以直接阅读、复制和导出 Markdown" width="860">
+</p>
+
+收藏库可以统一管理已经保存的元宝内容。你可以单篇导出，也可以勾选多篇后批量导出多个 Markdown 文件，或者合并导出成一个 Markdown 文件，方便后续进入知识库。
+
+<p align="center">
+  <img src="docs/screenshots/favorites-library.png" alt="Open YB 收藏库支持批量导出和合并导出" width="860">
+</p>
+
 ### 收藏库
 
 收藏库保存在 Chrome 本地 `chrome.storage.local`，不上传云端。

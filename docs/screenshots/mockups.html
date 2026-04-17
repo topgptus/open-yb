@@ -6,146 +6,339 @@
     <title>Open YB Screenshots</title>
     <link rel="stylesheet" href="../../extension/styles.css">
     <style>
+      :root {
+        color-scheme: light;
+      }
+
+      html,
       body {
         background: #eef3ea;
         color: #1c211b;
         margin: 0;
       }
+
       .shot {
         box-sizing: border-box;
-        min-height: 100vh;
+        display: none;
+        height: 760px;
+        overflow: hidden;
         padding: 24px;
+        width: 1180px;
       }
+
+      .shot:target,
+      .shot:first-of-type {
+        display: block;
+      }
+
+      body:has(.shot:target) .shot:first-of-type {
+        display: none;
+      }
+
       .browser {
         background: #ffffff;
         border: 1px solid #d8ded3;
         border-radius: 8px;
         box-shadow: 0 12px 30px rgba(28, 33, 27, 0.16);
+        height: 712px;
         overflow: hidden;
+        position: relative;
       }
+
       .bar {
         align-items: center;
-        background: #d7efee;
+        background: #cdebea;
         display: flex;
         gap: 10px;
-        height: 42px;
+        height: 50px;
         padding: 0 14px;
       }
-      .dot {
-        background: #7aa99a;
-        border-radius: 999px;
-        height: 12px;
-        width: 12px;
+
+      .nav {
+        color: #5e685b;
+        font-size: 22px;
       }
+
       .addr {
         background: #f7f8f5;
         border-radius: 999px;
-        color: #5e685b;
+        color: #45514a;
         flex: 1;
+        font-size: 15px;
+        padding: 9px 14px;
+      }
+
+      .toolbar-icons {
+        color: #2b6b58;
+        font-size: 18px;
+        letter-spacing: 8px;
+        white-space: nowrap;
+      }
+
+      .blocked-body {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        height: 662px;
+        justify-content: center;
+        padding-top: 80px;
+      }
+
+      .wechat-card {
+        border: 8px solid #e5e5e5;
+        border-radius: 10px;
+        height: 160px;
+        position: relative;
+        width: 96px;
+      }
+
+      .wechat-bubble,
+      .wechat-bubble::after {
+        background: #dfdfdf;
+        border-radius: 999px;
+        content: "";
+        display: block;
+        position: absolute;
+      }
+
+      .wechat-bubble {
+        height: 36px;
+        left: 22px;
+        top: 48px;
+        width: 54px;
+      }
+
+      .wechat-bubble::after {
+        height: 30px;
+        left: 34px;
+        top: 20px;
+        width: 46px;
+      }
+
+      .bulb {
+        align-items: center;
+        background: #f3c500;
+        border-radius: 999px;
+        box-shadow: 0 16px 30px rgba(28, 33, 27, 0.15);
+        display: flex;
+        font-size: 32px;
+        height: 72px;
+        justify-content: center;
+        margin-left: -130px;
+        margin-top: -70px;
+        width: 72px;
+      }
+
+      .blocked-title {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 42px 0 0;
+      }
+
+      .yuanbao-page {
+        background: #eeeeee;
+        height: 662px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .chat {
+        margin-left: 230px;
+        padding-top: 36px;
+        width: 520px;
+      }
+
+      .user {
+        color: #8a8f8b;
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+
+      .bubble {
+        background: #ffffff;
+        border-radius: 8px;
+        display: inline-block;
+        font-size: 20px;
+        margin-bottom: 22px;
+        padding: 14px 18px;
+      }
+
+      .answer {
+        background: #ffffff;
+        border-radius: 8px;
+        box-sizing: border-box;
+        padding: 26px 28px;
+        width: 520px;
+      }
+
+      .answer h2 {
+        font-size: 24px;
+        margin: 0 0 14px;
+      }
+
+      .answer pre {
+        color: #2b332f;
+        font: 16px/1.8 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        margin: 0;
+        white-space: pre-wrap;
+      }
+
+      .floating-tool {
+        background: #ffffff;
+        border: 1px solid #cfdcd4;
+        border-radius: 8px;
+        box-shadow: 0 10px 32px rgba(22, 44, 33, 0.18);
+        color: #17221c;
+        padding: 12px;
+        position: absolute;
+        right: 46px;
+        top: 100px;
+        width: 170px;
+      }
+
+      .floating-tool strong {
+        color: #1f6b48;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .floating-tool button {
+        background: #ffffff;
+        border: 1px solid #8fb19d;
+        border-radius: 8px;
+        color: #205b40;
+        display: inline-block;
         font-size: 13px;
-        padding: 7px 12px;
+        margin: 4px 3px 0 0;
+        padding: 6px 8px;
       }
-      .popup-wrap {
-        display: grid;
-        min-height: 640px;
-        place-items: center;
-      }
+
       .popup-demo {
         background: #ffffff;
         border: 1px solid #d8ded3;
         border-radius: 8px;
-        box-shadow: 0 12px 30px rgba(28, 33, 27, 0.18);
-        width: 420px;
+        box-shadow: 0 12px 30px rgba(28, 33, 27, 0.2);
+        padding: 16px;
+        position: absolute;
+        right: 120px;
+        top: 28px;
+        width: 300px;
+        z-index: 2;
       }
-      .reader-demo,
+
+      .popup-demo h1 {
+        font-size: 22px;
+      }
+
+      .arrow {
+        color: #ff1f0f;
+        font-size: 92px;
+        font-weight: 900;
+        position: absolute;
+        z-index: 3;
+      }
+
+      .arrow.icon {
+        right: 68px;
+        top: 18px;
+        transform: rotate(-25deg);
+      }
+
+      .arrow.switch {
+        right: 420px;
+        top: 84px;
+        transform: rotate(28deg);
+      }
+
       .options-demo {
         padding: 28px;
       }
-      .blur {
-        filter: blur(4px);
-      }
     </style>
   </head>
-  <body>
-    <section id="popup" class="shot">
-      <div class="popup-wrap">
-        <main class="oyb-popup popup-demo">
-          <header class="oyb-popup-brand">
-            <img src="../../extension/icons/open-yb-logo.svg" alt="" width="42" height="42">
-            <div>
-              <h1>Open YB</h1>
-              <a href="https://github.com/topgptus/open-yb">github.com/topgptus/open-yb</a>
-            </div>
-          </header>
-          <label class="oyb-switch">
-            <input type="checkbox" checked>
-            <span>接管元宝分享页</span>
-          </label>
-          <label class="oyb-field">
-            <span>Worker 地址</span>
-            <input type="url" value="https://your-worker.workers.dev">
-          </label>
-          <button type="button">保存设置</button>
-          <button type="button" class="oyb-secondary">打开收藏库</button>
-          <p class="oyb-note">勾选后自动接管元宝分享页；取消勾选则忽略。</p>
-        </main>
+  <body class="oyb-extension">
+    <section id="blocked" class="shot">
+      <div class="browser">
+        <div class="bar">
+          <span class="nav">←</span>
+          <span class="nav">→</span>
+          <span class="nav">↻</span>
+          <span class="addr">yb.tencent.com/wx/ct/f/YFm8o5p4qQniyP</span>
+          <span class="toolbar-icons">☆ ▣ ◉ ⋮</span>
+        </div>
+        <div class="blocked-body">
+          <div class="wechat-card"><span class="wechat-bubble"></span></div>
+          <div class="bulb">💡</div>
+          <p class="blocked-title">请在微信客户端打开该链接</p>
+        </div>
       </div>
     </section>
 
-    <section id="reader" class="shot">
+    <section id="enabled" class="shot">
       <div class="browser">
         <div class="bar">
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="addr">https://yb.tencent.com/wx/ct/example</span>
+          <span class="nav">←</span>
+          <span class="nav">→</span>
+          <span class="nav">↻</span>
+          <span class="addr">yb.tencent.com/wx/ct/f/YFdhiPChmYKy1</span>
+          <span class="toolbar-icons">☆ ▣ ◉ ⋮</span>
         </div>
-        <main class="reader-demo">
-          <section class="oyb-reader">
-            <div class="oyb-toolbar">
-              <div>
-                <p class="oyb-kicker">Open YB</p>
-                <h1>示例：元宝解析结果</h1>
-              </div>
-              <div class="oyb-actions">
-                <button type="button">复制正文</button>
-                <button type="button">收藏</button>
-                <button type="button">导出 MD</button>
-                <button type="button">设置</button>
-              </div>
-            </div>
-            <p class="oyb-status">来源：https://yb.tencent.com/wx/ct/example</p>
-            <article class="oyb-content">
-              <section class="oyb-block">
-                <h2>问题</h2>
-                <pre>提炼项目地址、核心内容和 tag</pre>
-              </section>
-              <section class="oyb-block">
-                <h2>回答</h2>
-                <pre>**项目地址**
-GitHub: https://github.com/example/project
+        <div class="yuanbao-page">
+          <div class="chat">
+            <p class="user">微信用户</p>
+            <div class="bubble">提炼整个视频的完整的 srt</div>
+            <p class="user">元宝</p>
+            <article class="answer">
+              <h2>猫科狗决：四困青年的生存策略</h2>
+              <pre>1
+00:00:00,000 --> 00:00:05,000
+我们正在经历人类历史上最奇特的转折点。
 
-**核心内容**
-1. 解决了一个具体问题
-2. 给出了关键操作步骤
-3. 适合整理进知识库
+2
+00:00:05,000 --> 00:00:12,000
+为什么现在亚洲年轻人养猫的越来越多，但养狗的人数却在下降？
 
-**标签**
-#AI工具 #效率提升 #项目整理</pre>
-              </section>
+3
+00:00:12,000 --> 00:00:18,000
+狗一直是战友和守卫，它代表了一种契约。</pre>
             </article>
-          </section>
-        </main>
+          </div>
+          <aside class="floating-tool">
+            <strong>Open YB</strong>
+            <button>复制正文</button>
+            <button>收藏</button>
+            <button>导出 MD</button>
+            <button>收藏库</button>
+          </aside>
+          <main class="oyb-popup popup-demo">
+            <header class="oyb-popup-brand">
+              <img src="../../extension/icons/open-yb-logo.svg" alt="" width="42" height="42">
+              <div>
+                <h1>Open YB</h1>
+                <a href="https://github.com/topgptus/open-yb">github.com/topgptus/open-yb</a>
+              </div>
+            </header>
+            <label class="oyb-switch">
+              <input type="checkbox" checked>
+              <span>接管元宝分享页</span>
+            </label>
+            <p class="oyb-note">不需要部署服务。插件会尝试直接打开和解析元宝分享页，并保留元宝原版显示。</p>
+            <button type="button">保存设置</button>
+            <button type="button" class="oyb-secondary">打开收藏库</button>
+          </main>
+          <span class="arrow icon">➤</span>
+          <span class="arrow switch">➤</span>
+        </div>
       </div>
     </section>
 
     <section id="favorites" class="shot">
       <div class="browser">
         <div class="bar">
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
+          <span class="nav">←</span>
+          <span class="nav">→</span>
+          <span class="nav">↻</span>
           <span class="addr">chrome-extension://open-yb/options.html</span>
+          <span class="toolbar-icons">☆ ▣ ◉ ⋮</span>
         </div>
         <main class="oyb-options options-demo">
           <header class="oyb-options-header">
@@ -156,8 +349,8 @@ GitHub: https://github.com/example/project
             </div>
             <div class="oyb-actions">
               <button type="button">全选</button>
-              <button type="button">复制合并 MD</button>
-              <button type="button">导出合并 MD</button>
+              <button type="button">批量导出</button>
+              <button type="button">合并导出</button>
               <button type="button" class="oyb-danger">删除</button>
             </div>
           </header>
@@ -166,39 +359,49 @@ GitHub: https://github.com/example/project
               <input type="checkbox" checked>
               <span>接管元宝分享页</span>
             </label>
-            <label class="oyb-field">
-              <span>Worker 地址</span>
-              <input type="url" value="https://your-worker.workers.dev">
-            </label>
             <button type="button">保存设置</button>
           </section>
           <p class="oyb-status">收藏 3 篇。</p>
           <section class="oyb-list">
             <article class="oyb-favorite">
-              <label class="oyb-check"><input type="checkbox" checked><span></span></label>
+              <label class="oyb-check"><input type="checkbox"><span></span></label>
               <div class="oyb-favorite-main">
-                <h2>视频文案拆解</h2>
-                <p>分析开头钩子、结构、卖点和复刻注意点</p>
-                <a href="#">https://yb.tencent.com/wx/ct/example-1</a>
-                <time>2026/4/16 06:33:04</time>
+                <h2>豉油鸡秘技全公开</h2>
+                <p>[视频号消息]</p>
+                <a href="#">https://yb.tencent.com/wx/ct/f/YFm8o5p4qQniyP</a>
+                <time>2026/4/16 23:13:12</time>
               </div>
               <div class="oyb-favorite-actions">
                 <button type="button">复制</button>
-                <button type="button">导出</button>
+                <button type="button">单篇导出</button>
                 <button type="button" class="oyb-danger">删除</button>
               </div>
             </article>
             <article class="oyb-favorite">
               <label class="oyb-check"><input type="checkbox"><span></span></label>
               <div class="oyb-favorite-main">
-                <h2>公众号核心观点</h2>
-                <p>提炼项目地址、关键步骤、适合人群和标签</p>
-                <a href="#">https://yb.tencent.com/wx/ct/example-2</a>
-                <time>2026/4/16 06:32:09</time>
+                <h2>猫科狗决：四困青年的生存策略</h2>
+                <p>[视频号消息]</p>
+                <a href="#">https://yb.tencent.com/wx/ct/f/YFdhiPChmYKy1</a>
+                <time>2026/4/16 23:12:55</time>
               </div>
               <div class="oyb-favorite-actions">
                 <button type="button">复制</button>
-                <button type="button">导出</button>
+                <button type="button">单篇导出</button>
+                <button type="button" class="oyb-danger">删除</button>
+              </div>
+            </article>
+            <article class="oyb-favorite">
+              <label class="oyb-check"><input type="checkbox"><span></span></label>
+              <div class="oyb-favorite-main">
+                <h2>为你生成回答</h2>
+                <p>帮我分析这条视频的拍摄剪辑手法</p>
+                <a href="#">https://yb.tencent.com/wx/ct/YFdXKu5JFr3Pz7</a>
+                <time>2026/4/16 23:13:13</time>
+              </div>
+              <div class="oyb-favorite-actions">
+                <button type="button">复制</button>
+                <button type="button">单篇导出</button>
                 <button type="button" class="oyb-danger">删除</button>
               </div>
             </article>
