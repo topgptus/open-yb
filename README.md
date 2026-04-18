@@ -2,12 +2,14 @@
 
 Open YB 是一个把腾讯元宝微信分享链接带回电脑和本地自动化流程的小工具。
 
+演示网站：<https://yb.topgpt.us/>
+
+GitHub：<https://github.com/topgptus/open-yb>
+
 现在项目只保留两个主功能：
 
 - `extension/`：Chrome 插件。在 Windows / macOS 的 Chrome 中打开元宝分享页，尽量保留元宝原版页面，同时提供复制、收藏、导出 Markdown。
 - `skills/open-yb/`：本地 Agent Skill。给 Codex、Claude Code、OpenClaw 或自己的脚本使用，把元宝 URL 解析成 Markdown、JSON 或纯文本。
-
-项目地址：<https://github.com/topgptus/open-yb>
 
 ## 为什么做这个
 
