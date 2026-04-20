@@ -270,7 +270,6 @@ function normalizeWebPageItem(page) {
   const now = new Date().toISOString();
   const sourceUrl = normalizeStoredUrl(page.sourceUrl || "");
   const title = page.title || "网页剪藏";
-  const tags = normalizeTags([...(page.tags || []), ...extractTags(page.markdown || page.text || "")]);
   return {
     id: `web-${hashText(sourceUrl || title)}`,
     sourceType: "webpage",
@@ -281,7 +280,7 @@ function normalizeWebPageItem(page) {
     answerTime: "",
     questionText: page.selection ? "当前网页选中文本" : "",
     answerText: page.markdown || page.text || "",
-    tags,
+    tags: [],
     savedAt: now,
     createdAt: now,
     updatedAt: now,
@@ -394,7 +393,7 @@ function extractCurrentPage() {
     selection,
     text: selection || (root?.innerText || document.body.innerText || "").slice(0, 50000),
     markdown: clipped,
-    tags: extractPageTags(clipped),
+    tags: [],
   };
 
   function pickContentRoot() {
@@ -483,14 +482,4 @@ function extractCurrentPage() {
       .trim();
   }
 
-  function extractPageTags(text) {
-    const tags = [];
-    const regex = /#([\u4e00-\u9fa5A-Za-z0-9_\-/.]+)/g;
-    let match;
-    while ((match = regex.exec(text || "")) && tags.length < 30) {
-      const tag = match[1].replace(/[，。；;、,.!?！？：:]+$/g, "").trim();
-      if (tag.length >= 2 && tag.length <= 32 && !tags.includes(tag)) tags.push(tag);
-    }
-    return tags;
-  }
 }

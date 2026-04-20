@@ -311,13 +311,16 @@ function itemToMarkdown(item) {
 
 function normalizeFavorite(item) {
   const text = `${item.questionText || ""}\n${item.answerText || ""}\n${item.description || ""}`;
-  const tags = normalizeTags([...(item.tags || []), ...extractTags(text)]);
   const sourceUrl = normalizeSourceUrl(item.sourceUrl || "");
+  const sourceType = normalizeSourceType(item);
+  const tags = sourceType === "webpage"
+    ? normalizeTags(item.tags || [])
+    : normalizeTags([...(item.tags || []), ...extractTags(text)]);
   const now = new Date().toISOString();
   return {
     ...item,
     id: item.id || item.shareId || hashText(sourceUrl),
-    sourceType: normalizeSourceType(item),
+    sourceType,
     sourceUrl,
     tags,
     savedAt: item.savedAt || item.createdAt || now,
