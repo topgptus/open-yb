@@ -171,6 +171,31 @@
   margin: 0 0 4px;
 }
 
+.oyb-popup .oyb-note {
+  line-height: 1.55;
+  margin: 12px 0;
+}
+
+.oyb-popup-actions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 14px;
+}
+
+.oyb-popup-actions button {
+  min-height: 38px;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.oyb-popup-actions .oyb-wide {
+  grid-column: 1 / -1;
+}
+
 .oyb-popup-brand a,
 .oyb-project-link {
   color: var(--oyb-accent);

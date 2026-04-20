@@ -23,10 +23,12 @@
         <input id="auto-save" type="checkbox">
         <span>打开元宝链接后自动收藏</span>
       </label>
-      <p class="oyb-note">不需要部署服务。可解析元宝分享页，也可把当前网页剪藏成 Markdown 存入收藏库。</p>
-      <button id="save-settings" type="button">保存设置</button>
-      <button id="save-page" type="button" class="oyb-secondary">保存当前网页为 MD</button>
-      <button id="open-options" type="button" class="oyb-secondary">打开收藏库</button>
+      <p class="oyb-note">不需要部署服务。可解析元宝分享页，也可剪藏当前网页为 Markdown。</p>
+      <div class="oyb-popup-actions">
+        <button id="save-settings" type="button">保存设置</button>
+        <button id="save-page" type="button" class="oyb-secondary">保存网页</button>
+        <button id="open-options" type="button" class="oyb-secondary oyb-wide">打开收藏库</button>
+      </div>
       <p id="popup-status" class="oyb-note"></p>
     </main>
     <script src="popup.js"></script>

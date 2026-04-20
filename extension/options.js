@@ -17,7 +17,7 @@ async function init() {
   const settings = await chrome.storage.sync.get({ enabled: true, autoSave: false });
   enabled.checked = settings.enabled;
   autoSave.checked = settings.autoSave;
-  await loadFavorites();
+  await loadFavorites({ persist: true });
 
   document.getElementById("save-settings").addEventListener("click", saveSettings);
   document.getElementById("select-all").addEventListener("click", selectAll);
@@ -30,6 +30,16 @@ async function init() {
   sourceFilter.addEventListener("change", renderFavorites);
   dateFilter.addEventListener("change", renderFavorites);
   customDate.addEventListener("change", renderFavorites);
+  window.addEventListener("focus", () => loadFavorites({ persist: false }));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadFavorites({ persist: false });
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local" || !changes.favorites) return;
+    favorites = dedupeFavorites((changes.favorites.newValue || []).map(normalizeFavorite));
+    renderTagFilter();
+    renderFavorites();
+  });
 }
 
 async function saveSettings() {
@@ -41,10 +51,12 @@ async function saveSettings() {
   setStatus(response?.ok ? "设置已保存。" : `设置已保存，但同步请求头规则失败：${response?.error || "未知错误"}`);
 }
 
-async function loadFavorites() {
+async function loadFavorites({ persist = false } = {}) {
   const data = await chrome.storage.local.get({ favorites: [] });
-  favorites = dedupeFavorites(data.favorites.map(normalizeFavorite));
-  await chrome.storage.local.set({ favorites });
+  const nextFavorites = dedupeFavorites(data.favorites.map(normalizeFavorite));
+  const shouldPersist = persist && JSON.stringify(nextFavorites) !== JSON.stringify(data.favorites);
+  favorites = nextFavorites;
+  if (shouldPersist) await chrome.storage.local.set({ favorites });
   renderTagFilter();
   renderFavorites();
 }
