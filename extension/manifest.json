@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Open YB",
   "description": "在 Chrome 中打开腾讯元宝微信分享页，保留原版页面并支持复制、收藏和 Markdown 导出。",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "homepage_url": "https://github.com/topgptus/open-yb",
   "icons": {
     "16": "icons/icon-16.png",

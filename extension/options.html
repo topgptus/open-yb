@@ -23,11 +23,46 @@
       </header>
 
       <section class="oyb-settings">
-        <label class="oyb-switch">
-          <input id="enabled" type="checkbox">
-          <span>接管元宝分享页</span>
-        </label>
+        <div>
+          <label class="oyb-switch">
+            <input id="enabled" type="checkbox">
+            <span>接管元宝分享页</span>
+          </label>
+          <label class="oyb-switch">
+            <input id="auto-save" type="checkbox">
+            <span>打开元宝链接后自动收藏</span>
+          </label>
+        </div>
         <button id="save-settings" type="button">保存设置</button>
+      </section>
+
+      <section class="oyb-filters">
+        <label class="oyb-field">
+          <span>搜索</span>
+          <input id="search" type="search" placeholder="标题、问题、正文、链接">
+        </label>
+        <label class="oyb-field">
+          <span>标签</span>
+          <select id="tag-filter">
+            <option value="">全部标签</option>
+          </select>
+        </label>
+        <label class="oyb-field">
+          <span>日期</span>
+          <select id="date-filter">
+            <option value="all">全部日期</option>
+            <option value="today">今天</option>
+            <option value="yesterday">昨天</option>
+            <option value="7days">近 7 天</option>
+            <option value="month">本月</option>
+            <option value="custom">指定日期</option>
+          </select>
+        </label>
+        <label class="oyb-field">
+          <span>指定日期</span>
+          <input id="custom-date" type="date">
+        </label>
+        <button id="clear-filters" type="button" class="oyb-secondary">清空筛选</button>
       </section>
 
       <p id="options-status" class="oyb-status"></p>

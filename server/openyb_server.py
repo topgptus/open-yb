@@ -547,12 +547,13 @@ def index_html() -> str:
       <div class="extension-layout">
         <div>
           <h2>Chrome 插件下载</h2>
-          <p>更推荐电脑端长期使用 Chrome 插件。开启后，浏览器打开元宝分享页会优先尝试直接解析和展示原版内容，并提供复制正文、收藏、单篇导出、批量导出、合并导出 Markdown。</p>
+          <p>更推荐电脑端长期使用 Chrome 插件。开启后，浏览器打开元宝分享页会优先尝试直接解析和展示原版内容，并提供复制正文、自动收藏、标签筛选、日期筛选、单篇导出、批量导出、合并导出 Markdown。</p>
           <ol class="extension-steps">
             <li>下载压缩包并解压到本地文件夹。</li>
             <li>打开 Chrome 扩展程序页面：chrome://extensions/。</li>
             <li>打开右上角“开发者模式”，点击“加载已解压的扩展程序”。</li>
             <li>选择解压后的 extension 文件夹，勾选“接管元宝分享页”。</li>
+            <li>如果经常批量打开元宝链接，可以开启“打开元宝链接后自动收藏”。</li>
           </ol>
         </div>
         <div class="download-box">

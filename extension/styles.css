@@ -28,6 +28,7 @@
 
 .oyb-extension button,
 .oyb-extension input,
+.oyb-extension select,
 .oyb-pure-tools button {
   font: inherit;
 }
@@ -195,7 +196,8 @@
   align-items: center;
 }
 
-.oyb-field input {
+.oyb-field input,
+.oyb-field select {
   border: 1px solid var(--oyb-line);
   border-radius: var(--oyb-radius);
   box-sizing: border-box;
@@ -210,7 +212,8 @@
 }
 
 .oyb-options-header,
-.oyb-settings {
+.oyb-settings,
+.oyb-filters {
   background: var(--oyb-panel);
   border: 1px solid var(--oyb-line);
   border-radius: var(--oyb-radius);
@@ -219,6 +222,14 @@
 
 .oyb-settings {
   align-items: end;
+  margin-top: 14px;
+}
+
+.oyb-filters {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1fr) 160px 140px 150px auto;
   margin-top: 14px;
 }
 
@@ -253,6 +264,31 @@
   margin: 0 0 8px;
 }
 
+.oyb-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.oyb-tags button {
+  background: var(--oyb-soft);
+  border-color: var(--oyb-line);
+  color: var(--oyb-accent);
+  font-size: 12px;
+  min-height: 28px;
+  padding: 4px 8px;
+}
+
+.oyb-tags button:hover {
+  border-color: var(--oyb-accent);
+}
+
+.oyb-tags-empty {
+  color: var(--oyb-muted);
+  font-size: 13px;
+}
+
 .oyb-favorite a,
 .oyb-favorite time {
   color: var(--oyb-muted);
@@ -277,6 +313,7 @@
   .oyb-toolbar,
   .oyb-options-header,
   .oyb-settings,
+  .oyb-filters,
   .oyb-favorite {
     align-items: stretch;
     grid-template-columns: 1fr;
