@@ -7,6 +7,7 @@ const status = document.getElementById("options-status");
 const list = document.getElementById("favorites-list");
 const searchInput = document.getElementById("search");
 const tagFilter = document.getElementById("tag-filter");
+const sourceFilter = document.getElementById("source-filter");
 const dateFilter = document.getElementById("date-filter");
 const customDate = document.getElementById("custom-date");
 
@@ -26,6 +27,7 @@ async function init() {
   document.getElementById("clear-filters").addEventListener("click", clearFilters);
   searchInput.addEventListener("input", renderFavorites);
   tagFilter.addEventListener("change", renderFavorites);
+  sourceFilter.addEventListener("change", renderFavorites);
   dateFilter.addEventListener("change", renderFavorites);
   customDate.addEventListener("change", renderFavorites);
 }
@@ -71,6 +73,7 @@ function renderFavorites() {
         <span></span>
       </label>
       <div class="oyb-favorite-main">
+        <div class="oyb-source-type">${escapeHtml(sourceTypeLabel(item.sourceType))}</div>
         <h2>${escapeHtml(item.title || "元宝分享内容")}</h2>
         <p>${escapeHtml(item.questionText || item.description || "无问题摘要")}</p>
         ${renderTags(item.tags)}
@@ -201,6 +204,7 @@ function selectedFavorites() {
 function filteredFavorites() {
   const keyword = searchInput.value.trim().toLocaleLowerCase();
   const selectedTag = tagFilter.value;
+  const selectedSource = sourceFilter.value;
   return favorites.filter((item) => {
     if (keyword) {
       const haystack = [
@@ -214,6 +218,7 @@ function filteredFavorites() {
       if (!haystack.includes(keyword)) return false;
     }
     if (selectedTag && !normalizeTags(item.tags || []).includes(selectedTag)) return false;
+    if (selectedSource !== "all" && normalizeSourceType(item) !== selectedSource) return false;
     return matchesDateFilter(item);
   });
 }
@@ -244,6 +249,7 @@ function matchesDateFilter(item) {
 function clearFilters() {
   searchInput.value = "";
   tagFilter.value = "";
+  sourceFilter.value = "all";
   dateFilter.value = "all";
   customDate.value = "";
   renderFavorites();
@@ -299,12 +305,22 @@ function normalizeFavorite(item) {
   return {
     ...item,
     id: item.id || item.shareId || hashText(sourceUrl),
+    sourceType: normalizeSourceType(item),
     sourceUrl,
     tags,
     savedAt: item.savedAt || item.createdAt || now,
     createdAt: item.createdAt || item.savedAt || now,
     updatedAt: item.updatedAt || item.savedAt || now,
   };
+}
+
+function normalizeSourceType(item) {
+  if (item.sourceType === "webpage") return "webpage";
+  return "yuanbao";
+}
+
+function sourceTypeLabel(type) {
+  return type === "webpage" ? "网页剪藏" : "元宝分享";
 }
 
 function dedupeFavorites(items) {

@@ -229,7 +229,7 @@
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(220px, 1fr) 160px 140px 150px auto;
+  grid-template-columns: minmax(220px, 1fr) 150px 130px 140px 150px auto;
   margin-top: 14px;
 }
 
@@ -257,6 +257,13 @@
 .oyb-favorite h2 {
   font-size: 18px;
   margin: 0 0 8px;
+}
+
+.oyb-source-type {
+  color: var(--oyb-accent);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 .oyb-favorite p {
