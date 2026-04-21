@@ -39,8 +39,8 @@
   background: var(--oyb-accent);
   color: #ffffff;
   cursor: pointer;
-  min-height: 36px;
-  padding: 8px 12px;
+  min-height: 34px;
+  padding: 7px 12px;
 }
 
 .oyb-extension button:disabled {
@@ -233,7 +233,11 @@
 }
 
 .oyb-options {
-  padding: 28px 20px 40px;
+  padding: 22px 18px 36px;
+}
+
+.oyb-options-header h1 {
+  font-size: 26px;
 }
 
 .oyb-options-header,
@@ -242,30 +246,53 @@
   background: var(--oyb-panel);
   border: 1px solid var(--oyb-line);
   border-radius: var(--oyb-radius);
-  padding: 18px;
+  padding: 14px 16px;
 }
 
 .oyb-settings {
-  align-items: end;
-  margin-top: 14px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.oyb-status {
+  margin: 12px 0 10px;
 }
 
 .oyb-filters {
   align-items: end;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(220px, 1fr) 150px 130px 140px 150px auto;
-  margin-top: 14px;
+  gap: 10px;
+  grid-template-columns: minmax(220px, 1fr) 145px 125px 135px 145px 86px;
+  margin-top: 10px;
 }
 
-.oyb-settings .oyb-field {
-  flex: 1;
-  min-width: 260px;
+.oyb-settings > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.oyb-settings .oyb-switch,
+.oyb-filters .oyb-field {
+  margin: 0;
+}
+
+.oyb-settings button,
+.oyb-filters button {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.oyb-filters button {
+  align-self: end;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .oyb-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .oyb-favorite {
@@ -274,14 +301,14 @@
   border: 1px solid var(--oyb-line);
   border-radius: var(--oyb-radius);
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  padding: 16px;
+  padding: 14px 16px;
 }
 
 .oyb-favorite h2 {
   font-size: 18px;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .oyb-source-type {
@@ -293,14 +320,14 @@
 
 .oyb-favorite p {
   color: var(--oyb-muted);
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .oyb-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 8px 0;
+  margin: 7px 0;
 }
 
 .oyb-tags button {
@@ -354,6 +381,17 @@
 
   .oyb-actions,
   .oyb-favorite-actions {
+    width: 100%;
+  }
+
+  .oyb-settings > div {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .oyb-settings button,
+  .oyb-filters button {
     width: 100%;
   }
 

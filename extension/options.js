@@ -94,7 +94,7 @@ function renderFavorites() {
       </div>
       <div class="oyb-favorite-actions">
         <button type="button" data-action="copy" data-id="${escapeAttr(item.id)}">复制</button>
-        <button type="button" data-action="download" data-id="${escapeAttr(item.id)}">单篇导出</button>
+        <button type="button" data-action="download" data-id="${escapeAttr(item.id)}">导出</button>
         <button type="button" data-action="edit-tags" data-id="${escapeAttr(item.id)}">编辑标签</button>
         <button type="button" data-action="delete-one" data-id="${escapeAttr(item.id)}" class="oyb-danger">删除</button>
       </div>
