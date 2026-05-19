@@ -53,6 +53,8 @@
             <option value="all">全部来源</option>
             <option value="yuanbao">元宝</option>
             <option value="webpage">网页</option>
+            <option value="selection">选中</option>
+            <option value="ai-selection">AI 整理</option>
           </select>
         </label>
         <label class="oyb-field">
@@ -71,6 +73,34 @@
           <input id="custom-date" type="date">
         </label>
         <button id="clear-filters" type="button" class="oyb-secondary">清空筛选</button>
+      </section>
+
+      <section class="oyb-llm-settings">
+        <div class="oyb-section-title">
+          <div>
+            <p class="oyb-kicker">LLM</p>
+            <h2>选中内容 AI 整理</h2>
+          </div>
+          <button id="save-llm-settings" type="button">保存 LLM</button>
+        </div>
+        <div class="oyb-llm-grid">
+          <label class="oyb-field">
+            <span>Base URL</span>
+            <input id="llm-base-url" type="url" placeholder="http://127.0.0.1:11434/v1">
+          </label>
+          <label class="oyb-field">
+            <span>API Key</span>
+            <input id="llm-api-key" type="password" placeholder="本地模型可填 ollama 或留空">
+          </label>
+          <label class="oyb-field">
+            <span>Model</span>
+            <input id="llm-model" type="text" placeholder="qwen3-4b / qwen2.5 / gpt-4o-mini">
+          </label>
+        </div>
+        <label class="oyb-field oyb-prompt-field">
+          <span>默认提示词</span>
+          <textarea id="llm-prompt" rows="8"></textarea>
+        </label>
       </section>
 
       <p id="options-status" class="oyb-status"></p>

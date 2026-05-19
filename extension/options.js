@@ -1,5 +1,15 @@
 let favorites = [];
 let visibleFavorites = [];
+const DEFAULT_LLM_PROMPT = `请把下面网页选中内容整理成适合知识库保存的 Markdown 笔记。
+
+要求：
+1. 生成一个清晰标题
+2. 用一句话总结核心内容
+3. 提炼关键观点
+4. 如果有项目地址、论文、工具、命令、代码或链接，请单独列出
+5. 输出 5-10 个短标签，格式必须是 #标签1#标签2#标签3
+6. 保留重要事实，不要编造
+7. 直接输出 Markdown，不要解释你的处理过程`;
 
 const enabled = document.getElementById("enabled");
 const autoSave = document.getElementById("auto-save");
@@ -10,6 +20,10 @@ const tagFilter = document.getElementById("tag-filter");
 const sourceFilter = document.getElementById("source-filter");
 const dateFilter = document.getElementById("date-filter");
 const customDate = document.getElementById("custom-date");
+const llmBaseUrl = document.getElementById("llm-base-url");
+const llmApiKey = document.getElementById("llm-api-key");
+const llmModel = document.getElementById("llm-model");
+const llmPrompt = document.getElementById("llm-prompt");
 
 init();
 
@@ -17,9 +31,11 @@ async function init() {
   const settings = await chrome.storage.sync.get({ enabled: true, autoSave: false });
   enabled.checked = settings.enabled;
   autoSave.checked = settings.autoSave;
+  await loadLlmSettings();
   await loadFavorites({ persist: true });
 
   document.getElementById("save-settings").addEventListener("click", saveSettings);
+  document.getElementById("save-llm-settings").addEventListener("click", saveLlmSettings);
   document.getElementById("select-all").addEventListener("click", selectAll);
   document.getElementById("batch-download-selected").addEventListener("click", batchDownloadSelected);
   document.getElementById("merge-download-selected").addEventListener("click", mergeDownloadSelected);
@@ -49,6 +65,29 @@ async function saveSettings() {
     error: error.message || String(error),
   }));
   setStatus(response?.ok ? "设置已保存。" : `设置已保存，但同步请求头规则失败：${response?.error || "未知错误"}`);
+}
+
+async function loadLlmSettings() {
+  const settings = await chrome.storage.local.get({
+    llmBaseUrl: "",
+    llmApiKey: "",
+    llmModel: "",
+    llmPrompt: DEFAULT_LLM_PROMPT,
+  });
+  llmBaseUrl.value = settings.llmBaseUrl;
+  llmApiKey.value = settings.llmApiKey;
+  llmModel.value = settings.llmModel;
+  llmPrompt.value = settings.llmPrompt || DEFAULT_LLM_PROMPT;
+}
+
+async function saveLlmSettings() {
+  await chrome.storage.local.set({
+    llmBaseUrl: llmBaseUrl.value.trim(),
+    llmApiKey: llmApiKey.value.trim(),
+    llmModel: llmModel.value.trim(),
+    llmPrompt: llmPrompt.value.trim() || DEFAULT_LLM_PROMPT,
+  });
+  setStatus("LLM 设置已保存。");
 }
 
 async function loadFavorites({ persist = false } = {}) {
@@ -313,9 +352,9 @@ function normalizeFavorite(item) {
   const text = `${item.questionText || ""}\n${item.answerText || ""}\n${item.description || ""}`;
   const sourceUrl = normalizeSourceUrl(item.sourceUrl || "");
   const sourceType = normalizeSourceType(item);
-  const tags = sourceType === "webpage"
-    ? normalizeTags(item.tags || [])
-    : normalizeTags([...(item.tags || []), ...extractTags(text)]);
+  const tags = sourceType === "yuanbao" || sourceType === "ai-selection"
+    ? normalizeTags([...(item.tags || []), ...extractTags(text)])
+    : normalizeTags(item.tags || []);
   const now = new Date().toISOString();
   return {
     ...item,
@@ -330,11 +369,15 @@ function normalizeFavorite(item) {
 }
 
 function normalizeSourceType(item) {
+  if (item.sourceType === "ai-selection") return "ai-selection";
+  if (item.sourceType === "selection") return "selection";
   if (item.sourceType === "webpage") return "webpage";
   return "yuanbao";
 }
 
 function sourceTypeLabel(type) {
+  if (type === "ai-selection") return "AI 摘录";
+  if (type === "selection") return "选中摘录";
   return type === "webpage" ? "网页剪藏" : "元宝分享";
 }
 
@@ -362,7 +405,12 @@ function dedupeFavorites(items) {
 function isSameFavorite(left, right) {
   if (left.shareId && right.shareId && left.shareId === right.shareId) return true;
   if (left.id && right.id && left.id === right.id) return true;
+  if (isSelectionSource(left) || isSelectionSource(right)) return false;
   return normalizeSourceUrl(left.sourceUrl || "") === normalizeSourceUrl(right.sourceUrl || "");
+}
+
+function isSelectionSource(item) {
+  return item?.sourceType === "selection" || item?.sourceType === "ai-selection";
 }
 
 function extractTags(text) {

@@ -242,7 +242,8 @@
 
 .oyb-options-header,
 .oyb-settings,
-.oyb-filters {
+.oyb-filters,
+.oyb-llm-settings {
   background: var(--oyb-panel);
   border: 1px solid var(--oyb-line);
   border-radius: var(--oyb-radius);
@@ -288,6 +289,51 @@
   align-self: end;
   padding-left: 10px;
   padding-right: 10px;
+}
+
+.oyb-llm-settings {
+  margin-top: 10px;
+}
+
+.oyb-section-title {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.oyb-section-title h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.oyb-llm-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, .75fr) minmax(180px, .75fr);
+}
+
+.oyb-llm-grid .oyb-field,
+.oyb-prompt-field {
+  margin: 0;
+}
+
+.oyb-prompt-field {
+  margin-top: 10px;
+}
+
+.oyb-field textarea {
+  border: 1px solid var(--oyb-line);
+  border-radius: var(--oyb-radius);
+  box-sizing: border-box;
+  color: var(--oyb-text);
+  font: inherit;
+  line-height: 1.55;
+  min-height: 130px;
+  padding: 9px 10px;
+  resize: vertical;
+  width: 100%;
 }
 
 .oyb-list {
@@ -373,6 +419,7 @@
   .oyb-options-header,
   .oyb-settings,
   .oyb-filters,
+  .oyb-section-title,
   .oyb-favorite {
     align-items: stretch;
     grid-template-columns: 1fr;
@@ -393,6 +440,10 @@
   .oyb-settings button,
   .oyb-filters button {
     width: 100%;
+  }
+
+  .oyb-llm-grid {
+    grid-template-columns: 1fr;
   }
 
   .oyb-actions button,

@@ -4,13 +4,25 @@ const WX_USER_AGENT =
   "MicroMessenger/8.0.49(0x1800312c) NetType/WIFI Language/zh_CN";
 
 const RULE_ID = 1001;
+const DEFAULT_LLM_PROMPT = `请把下面网页选中内容整理成适合知识库保存的 Markdown 笔记。
+
+要求：
+1. 生成一个清晰标题
+2. 用一句话总结核心内容
+3. 提炼关键观点
+4. 如果有项目地址、论文、工具、命令、代码或链接，请单独列出
+5. 输出 5-10 个短标签，格式必须是 #标签1#标签2#标签3
+6. 保留重要事实，不要编造
+7. 直接输出 Markdown，不要解释你的处理过程`;
 
 chrome.runtime.onInstalled.addListener(() => {
   syncHeaderRule().catch(console.error);
+  setupContextMenus();
 });
 
 chrome.runtime.onStartup.addListener(() => {
   syncHeaderRule().catch(console.error);
+  setupContextMenus();
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -50,6 +62,48 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return false;
 });
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === "open-yb-save-selection") {
+    saveSelectionFromContext(info, tab, false).catch((error) => {
+      console.error(error);
+      showBadge(tab?.id, "ERR", "#a0342f");
+    });
+  }
+  if (info.menuItemId === "open-yb-ai-save-selection") {
+    saveSelectionFromContext(info, tab, true).catch((error) => {
+      console.error(error);
+      showBadge(tab?.id, "ERR", "#a0342f");
+    });
+  }
+});
+
+function setupContextMenus() {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: "open-yb-save-selection",
+      title: "保存选中到 Open YB",
+      contexts: ["selection"],
+    });
+    chrome.contextMenus.create({
+      id: "open-yb-ai-save-selection",
+      title: "AI 整理后收藏",
+      contexts: ["selection"],
+    });
+  });
+}
+
+async function saveSelectionFromContext(info, tab, useAi) {
+  const selectionText = (info.selectionText || "").trim();
+  if (!selectionText) throw new Error("没有选中内容。");
+  const pageUrl = info.pageUrl || tab?.url || "";
+  const pageTitle = tab?.title || "网页选中内容";
+  const item = useAi
+    ? await buildAiSelectionItem({ selectionText, pageUrl, pageTitle })
+    : buildSelectionItem({ selectionText, pageUrl, pageTitle });
+  await saveFavorite(item);
+  showBadge(tab?.id, "OK", "#246b4f");
+}
 
 async function saveCurrentPage() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -292,6 +346,125 @@ function normalizeWebPageItem(page) {
   };
 }
 
+function buildSelectionItem({ selectionText, pageUrl, pageTitle }) {
+  const now = new Date().toISOString();
+  const sourceUrl = normalizeStoredUrl(pageUrl || "");
+  const title = pageTitle || "网页选中内容";
+  const body = [
+    `# ${title}`,
+    "",
+    sourceUrl ? `来源：${sourceUrl}` : "",
+    "",
+    "## 选中内容",
+    "",
+    selectionText,
+  ].filter(Boolean).join("\n").trim();
+  return {
+    id: `selection-${hashText(`${sourceUrl}:${selectionText.slice(0, 120)}`)}`,
+    sourceType: "selection",
+    sourceUrl,
+    shareId: "",
+    title,
+    description: selectionText.slice(0, 180),
+    answerTime: "",
+    questionText: "网页选中内容",
+    answerText: body,
+    tags: [],
+    savedAt: now,
+    createdAt: now,
+    updatedAt: now,
+    meta: {
+      mode: "selection-clipper",
+      clippedBy: "open-yb",
+    },
+  };
+}
+
+async function buildAiSelectionItem({ selectionText, pageUrl, pageTitle }) {
+  const now = new Date().toISOString();
+  const sourceUrl = normalizeStoredUrl(pageUrl || "");
+  const title = pageTitle || "AI 整理选中内容";
+  const markdown = await organizeSelectionWithLlm({ selectionText, pageUrl: sourceUrl, pageTitle: title });
+  const tags = extractTags(markdown);
+  return {
+    id: `ai-selection-${hashText(`${sourceUrl}:${selectionText.slice(0, 120)}`)}`,
+    sourceType: "ai-selection",
+    sourceUrl,
+    shareId: "",
+    title: inferMarkdownTitle(markdown) || title,
+    description: selectionText.slice(0, 180),
+    answerTime: "",
+    questionText: "AI 整理网页选中内容",
+    answerText: markdown,
+    tags,
+    savedAt: now,
+    createdAt: now,
+    updatedAt: now,
+    meta: {
+      mode: "ai-selection-clipper",
+      clippedBy: "open-yb",
+    },
+  };
+}
+
+async function organizeSelectionWithLlm({ selectionText, pageUrl, pageTitle }) {
+  const settings = await chrome.storage.local.get({
+    llmBaseUrl: "",
+    llmApiKey: "",
+    llmModel: "",
+    llmPrompt: DEFAULT_LLM_PROMPT,
+  });
+  const baseUrl = normalizeBaseUrl(settings.llmBaseUrl);
+  if (!baseUrl) throw new Error("请先在收藏库设置里配置 LLM Base URL。");
+  if (!settings.llmModel) throw new Error("请先在收藏库设置里配置 LLM Model。");
+
+  const prompt = [
+    settings.llmPrompt || DEFAULT_LLM_PROMPT,
+    "",
+    `页面标题：${pageTitle || ""}`,
+    `页面链接：${pageUrl || ""}`,
+    "",
+    "原文如下：",
+    selectionText,
+  ].join("\n");
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...(settings.llmApiKey ? { authorization: `Bearer ${settings.llmApiKey}` } : {}),
+    },
+    body: JSON.stringify({
+      model: settings.llmModel,
+      messages: [
+        { role: "system", content: "你是一个严谨的知识库笔记整理助手。" },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.2,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(`LLM 请求失败：HTTP ${response.status}${errorText ? ` ${errorText.slice(0, 160)}` : ""}`);
+  }
+  const data = await response.json();
+  const content = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || "";
+  if (!content.trim()) throw new Error("LLM 没有返回内容。");
+  return content.trim();
+}
+
+function normalizeBaseUrl(value) {
+  const raw = String(value || "").trim().replace(/\/+$/g, "");
+  if (!raw) return "";
+  return raw.endsWith("/chat/completions") ? raw.replace(/\/chat\/completions$/g, "") : raw;
+}
+
+function inferMarkdownTitle(markdown) {
+  const match = String(markdown || "").match(/^#\s+(.+)$/m);
+  return match?.[1]?.trim() || "";
+}
+
 async function saveFavorite(item) {
   const { favorites = [] } = await chrome.storage.local.get({ favorites: [] });
   const existing = favorites.find((favorite) => isSameFavorite(favorite, item));
@@ -317,7 +490,21 @@ async function saveFavorite(item) {
 function isSameFavorite(left, right) {
   if (left.shareId && right.shareId && left.shareId === right.shareId) return true;
   if (left.id && right.id && left.id === right.id) return true;
+  if (isSelectionSource(left) || isSelectionSource(right)) return false;
   return normalizeStoredUrl(left.sourceUrl || "") === normalizeStoredUrl(right.sourceUrl || "");
+}
+
+function isSelectionSource(item) {
+  return item?.sourceType === "selection" || item?.sourceType === "ai-selection";
+}
+
+function showBadge(tabId, text, color) {
+  if (!tabId) return;
+  chrome.action.setBadgeBackgroundColor({ tabId, color }).catch(() => null);
+  chrome.action.setBadgeText({ tabId, text }).catch(() => null);
+  setTimeout(() => {
+    chrome.action.setBadgeText({ tabId, text: "" }).catch(() => null);
+  }, 1800);
 }
 
 function normalizeStoredUrl(value) {
