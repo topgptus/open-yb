@@ -555,25 +555,48 @@
 }
 
 .oyb-yuanbao-copy {
-  background: #111111;
-  border: 2px solid #ef3f23;
-  border-radius: 0;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, .16);
-  color: #ff3b1f;
+  align-items: center;
+  background: rgba(255, 255, 255, .96);
+  border: 1px solid #b7d5c2;
+  border-radius: 999px;
+  box-shadow: 0 12px 28px rgba(22, 44, 33, .14);
+  color: #1f6b48;
   cursor: pointer;
-  font: 800 22px/1.1 "PingFang SC", "Microsoft YaHei", sans-serif;
-  min-height: 44px;
-  padding: 8px 13px;
+  display: inline-flex;
+  font: 700 14px/1.2 "PingFang SC", "Microsoft YaHei", sans-serif;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 14px 8px 11px;
   position: fixed;
-  right: 72px;
-  top: 86px;
+  right: 42px;
+  top: 92px;
+  transition: background .18s, border-color .18s, box-shadow .18s, color .18s, transform .18s;
   z-index: 2147483647;
+}
+
+.oyb-yuanbao-copy::before {
+  background: linear-gradient(135deg, #1f7a55, #20a36b);
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(31, 122, 85, .12);
+  content: "";
+  flex: 0 0 auto;
+  height: 9px;
+  width: 9px;
 }
 
 .oyb-yuanbao-copy:hover,
 .oyb-yuanbao-copy.is-copied {
-  background: #ef3f23;
+  background: #1f7a55;
+  border-color: #1f7a55;
+  box-shadow: 0 14px 30px rgba(31, 122, 85, .24);
   color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.oyb-yuanbao-copy:hover::before,
+.oyb-yuanbao-copy.is-copied::before {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .18);
 }
 
 @media (max-width: 720px) {
@@ -585,9 +608,10 @@
   }
 
   .oyb-yuanbao-copy {
-    font-size: 16px;
-    min-height: 38px;
-    right: 14px;
+    font-size: 13px;
+    min-height: 36px;
+    padding: 7px 12px 7px 10px;
+    right: 12px;
     top: 72px;
   }
 }
