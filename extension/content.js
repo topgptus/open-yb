@@ -1,12 +1,54 @@
 let parsedItem = null;
 let lastSaveResult = null;
+const DEFAULT_YUANBAO_PROMPT = `请基于下面这篇微信公众号文章，帮我整理成一份适合财税公司内部知识库保存的文档。
+
+要求：
+1. 只能依据文章中已经明确出现的信息进行总结，不能编造，不能补充文章中没有提到的政策、案例、数据或结论。
+2. 请完整总结文章的核心内容和重要细节，尽量覆盖文章的主要观点、逻辑结构、关键步骤、注意事项和结论。
+3. 如果文章中有图片，请尽量提取图片里的文字信息、图表信息、流程信息或截图中的关键信息，相当于补充 OCR 后再一起整理。
+4. 如果文章中包含视频，请补充视频中承载的关键信息；如果无法获取完整视频内容，请明确说明“视频内容未完整获取”，不要猜测。
+5. 输出内容要适合财税公司内部知识库使用，表达清晰、结构化、便于检索和复用。
+6. 如果文章涉及政策、申报、合规、税务处理、风险点、办理流程、资料要求、时间节点，请单独整理出来。
+7. 如果文章里有明确的适用对象、适用场景、办理条件、常见误区、风险提醒，也请单独列出。
+8. 最后请输出一组适合知识库检索的标签，格式必须为：#标签1#标签2#标签3#标签4#标签5
+
+请按下面结构输出：
+
+# 标题
+
+## 一句话摘要
+
+## 核心内容概览
+
+## 详细内容整理
+
+## 关键流程 / 步骤
+
+## 风险点 / 注意事项
+
+## 适用对象 / 适用场景
+
+## 图片与图表补充信息
+
+## 视频信息补充
+
+## 可直接用于知识库的结论
+
+## 标签`;
 
 main().catch((error) => {
-  renderFloatingToolbar();
-  setToolbarState("error", error.message || String(error));
+  if (isYuanbaoShareUrl(location.href)) {
+    renderFloatingToolbar();
+    setToolbarState("error", error.message || String(error));
+  }
 });
 
 async function main() {
+  if (isWeixinArticleUrl(location.href)) {
+    await renderWeixinYuanbaoButton();
+    return;
+  }
+
   if (!isYuanbaoShareUrl(location.href)) return;
 
   const { enabled = true, autoSave = false } = await chrome.storage.sync.get({ enabled: true, autoSave: false });
@@ -33,6 +75,53 @@ async function main() {
     setToolbarState("ready", parsedItem.title || "已解析，可复制、收藏或导出 MD");
   }
   wireToolbarActions();
+}
+
+function isWeixinArticleUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "mp.weixin.qq.com" && parsed.pathname.startsWith("/s/");
+  } catch {
+    return false;
+  }
+}
+
+async function renderWeixinYuanbaoButton() {
+  const { weixinHelperEnabled = true, yuanbaoPrompt = DEFAULT_YUANBAO_PROMPT } = await chrome.storage.local.get({
+    weixinHelperEnabled: true,
+    yuanbaoPrompt: DEFAULT_YUANBAO_PROMPT,
+  });
+  if (!weixinHelperEnabled || document.getElementById("oyb-yuanbao-copy")) return;
+
+  const button = document.createElement("button");
+  button.id = "oyb-yuanbao-copy";
+  button.className = "oyb-yuanbao-copy";
+  button.type = "button";
+  button.textContent = "发给元宝";
+  button.title = "复制文章链接和元宝提炼提示词";
+  button.addEventListener("click", async () => {
+    const text = buildYuanbaoPromptText(yuanbaoPrompt);
+    await navigator.clipboard.writeText(text);
+    button.textContent = "已复制";
+    button.classList.add("is-copied");
+    setTimeout(() => {
+      button.textContent = "发给元宝";
+      button.classList.remove("is-copied");
+    }, 1800);
+  });
+
+  (document.body || document.documentElement).appendChild(button);
+}
+
+function buildYuanbaoPromptText(prompt) {
+  const title = document.title ? `文章标题：${document.title.trim()}\n` : "";
+  return [
+    "请帮我处理下面这篇微信公众号文章：",
+    "",
+    title + `文章链接：${location.href}`,
+    "",
+    prompt || DEFAULT_YUANBAO_PROMPT,
+  ].join("\n").trim();
 }
 
 function isYuanbaoShareUrl(url) {

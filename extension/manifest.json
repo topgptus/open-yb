@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Open YB",
-  "description": "在 Chrome 中打开腾讯元宝微信分享页，也可把网页和选中内容整理为 Markdown 收藏。",
-  "version": "0.4.0",
+  "description": "在 Chrome 中打开腾讯元宝微信分享页，也可生成公众号文章发给元宝的提示词。",
+  "version": "0.4.1",
   "homepage_url": "https://github.com/topgptus/open-yb",
   "icons": {
     "16": "icons/icon-16.png",
@@ -35,6 +35,7 @@
     "http://127.0.0.1/*",
     "http://localhost/*",
     "https://*/*",
+    "https://mp.weixin.qq.com/s/*",
     "https://yb.tencent.com/wx/ct/*",
     "https://yuanbao.tencent.com/wx/ct/*"
   ],
@@ -43,6 +44,15 @@
       "matches": [
         "https://yb.tencent.com/wx/ct/*",
         "https://yuanbao.tencent.com/wx/ct/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+    ,
+    {
+      "matches": [
+        "https://mp.weixin.qq.com/s/*"
       ],
       "js": ["content.js"],
       "css": ["styles.css"],

@@ -29,6 +29,9 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync" && changes.enabled) {
     syncHeaderRule().catch(console.error);
   }
+  if (area === "local" && changes.llmEnabled) {
+    setupContextMenus();
+  }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -78,18 +81,21 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-function setupContextMenus() {
+async function setupContextMenus() {
+  const { llmEnabled = false } = await chrome.storage.local.get({ llmEnabled: false });
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: "open-yb-save-selection",
       title: "保存选中到 Open YB",
       contexts: ["selection"],
     });
-    chrome.contextMenus.create({
-      id: "open-yb-ai-save-selection",
-      title: "AI 整理后收藏",
-      contexts: ["selection"],
-    });
+    if (llmEnabled) {
+      chrome.contextMenus.create({
+        id: "open-yb-ai-save-selection",
+        title: "AI 整理后收藏",
+        contexts: ["selection"],
+      });
+    }
   });
 }
 
@@ -381,6 +387,8 @@ function buildSelectionItem({ selectionText, pageUrl, pageTitle }) {
 }
 
 async function buildAiSelectionItem({ selectionText, pageUrl, pageTitle }) {
+  const { llmEnabled = false } = await chrome.storage.local.get({ llmEnabled: false });
+  if (!llmEnabled) throw new Error("本地 LLM 整理未开启。");
   const now = new Date().toISOString();
   const sourceUrl = normalizeStoredUrl(pageUrl || "");
   const title = pageTitle || "AI 整理选中内容";
@@ -409,12 +417,14 @@ async function buildAiSelectionItem({ selectionText, pageUrl, pageTitle }) {
 
 async function organizeSelectionWithLlm({ selectionText, pageUrl, pageTitle }) {
   const settings = await chrome.storage.local.get({
+    llmEnabled: false,
     llmBaseUrl: "",
     llmApiKey: "",
     llmModel: "",
     llmPrompt: DEFAULT_LLM_PROMPT,
   });
   const baseUrl = normalizeBaseUrl(settings.llmBaseUrl);
+  if (!settings.llmEnabled) throw new Error("本地 LLM 整理未开启。");
   if (!baseUrl) throw new Error("请先在收藏库设置里配置 LLM Base URL。");
   if (!settings.llmModel) throw new Error("请先在收藏库设置里配置 LLM Model。");
 

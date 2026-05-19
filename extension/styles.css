@@ -243,6 +243,7 @@
 .oyb-options-header,
 .oyb-settings,
 .oyb-filters,
+.oyb-yuanbao-settings,
 .oyb-llm-settings {
   background: var(--oyb-panel);
   border: 1px solid var(--oyb-line);
@@ -291,6 +292,7 @@
   padding-right: 10px;
 }
 
+.oyb-yuanbao-settings,
 .oyb-llm-settings {
   margin-top: 10px;
 }
@@ -321,6 +323,10 @@
 
 .oyb-prompt-field {
   margin-top: 10px;
+}
+
+.oyb-inline-switch {
+  margin: 0 0 10px;
 }
 
 .oyb-field textarea {
@@ -548,11 +554,40 @@
   display: none;
 }
 
+.oyb-yuanbao-copy {
+  background: #111111;
+  border: 2px solid #ef3f23;
+  border-radius: 0;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .16);
+  color: #ff3b1f;
+  cursor: pointer;
+  font: 800 22px/1.1 "PingFang SC", "Microsoft YaHei", sans-serif;
+  min-height: 44px;
+  padding: 8px 13px;
+  position: fixed;
+  right: 72px;
+  top: 86px;
+  z-index: 2147483647;
+}
+
+.oyb-yuanbao-copy:hover,
+.oyb-yuanbao-copy.is-copied {
+  background: #ef3f23;
+  color: #ffffff;
+}
+
 @media (max-width: 720px) {
   .oyb-pure-tools {
     left: 12px;
     right: 12px;
     top: 72px;
     width: auto;
+  }
+
+  .oyb-yuanbao-copy {
+    font-size: 16px;
+    min-height: 38px;
+    right: 14px;
+    top: 72px;
   }
 }

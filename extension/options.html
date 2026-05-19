@@ -75,6 +75,24 @@
         <button id="clear-filters" type="button" class="oyb-secondary">清空筛选</button>
       </section>
 
+      <section class="oyb-yuanbao-settings">
+        <div class="oyb-section-title">
+          <div>
+            <p class="oyb-kicker">Yuanbao</p>
+            <h2>公众号发给元宝</h2>
+          </div>
+          <button id="save-yuanbao-settings" type="button">保存提示词</button>
+        </div>
+        <label class="oyb-switch oyb-inline-switch">
+          <input id="weixin-helper-enabled" type="checkbox">
+          <span>在微信公众号文章显示“发给元宝”按钮</span>
+        </label>
+        <label class="oyb-field oyb-prompt-field">
+          <span>元宝提炼提示词</span>
+          <textarea id="yuanbao-prompt" rows="10"></textarea>
+        </label>
+      </section>
+
       <section class="oyb-llm-settings">
         <div class="oyb-section-title">
           <div>
@@ -83,6 +101,10 @@
           </div>
           <button id="save-llm-settings" type="button">保存 LLM</button>
         </div>
+        <label class="oyb-switch oyb-inline-switch">
+          <input id="llm-enabled" type="checkbox">
+          <span>启用本地 / 自定义 LLM 整理</span>
+        </label>
         <div class="oyb-llm-grid">
           <label class="oyb-field">
             <span>Base URL</span>

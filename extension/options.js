@@ -1,5 +1,40 @@
 let favorites = [];
 let visibleFavorites = [];
+const DEFAULT_YUANBAO_PROMPT = `请基于下面这篇微信公众号文章，帮我整理成一份适合财税公司内部知识库保存的文档。
+
+要求：
+1. 只能依据文章中已经明确出现的信息进行总结，不能编造，不能补充文章中没有提到的政策、案例、数据或结论。
+2. 请完整总结文章的核心内容和重要细节，尽量覆盖文章的主要观点、逻辑结构、关键步骤、注意事项和结论。
+3. 如果文章中有图片，请尽量提取图片里的文字信息、图表信息、流程信息或截图中的关键信息，相当于补充 OCR 后再一起整理。
+4. 如果文章中包含视频，请补充视频中承载的关键信息；如果无法获取完整视频内容，请明确说明“视频内容未完整获取”，不要猜测。
+5. 输出内容要适合财税公司内部知识库使用，表达清晰、结构化、便于检索和复用。
+6. 如果文章涉及政策、申报、合规、税务处理、风险点、办理流程、资料要求、时间节点，请单独整理出来。
+7. 如果文章里有明确的适用对象、适用场景、办理条件、常见误区、风险提醒，也请单独列出。
+8. 最后请输出一组适合知识库检索的标签，格式必须为：#标签1#标签2#标签3#标签4#标签5
+
+请按下面结构输出：
+
+# 标题
+
+## 一句话摘要
+
+## 核心内容概览
+
+## 详细内容整理
+
+## 关键流程 / 步骤
+
+## 风险点 / 注意事项
+
+## 适用对象 / 适用场景
+
+## 图片与图表补充信息
+
+## 视频信息补充
+
+## 可直接用于知识库的结论
+
+## 标签`;
 const DEFAULT_LLM_PROMPT = `请把下面网页选中内容整理成适合知识库保存的 Markdown 笔记。
 
 要求：
@@ -20,6 +55,9 @@ const tagFilter = document.getElementById("tag-filter");
 const sourceFilter = document.getElementById("source-filter");
 const dateFilter = document.getElementById("date-filter");
 const customDate = document.getElementById("custom-date");
+const weixinHelperEnabled = document.getElementById("weixin-helper-enabled");
+const yuanbaoPrompt = document.getElementById("yuanbao-prompt");
+const llmEnabled = document.getElementById("llm-enabled");
 const llmBaseUrl = document.getElementById("llm-base-url");
 const llmApiKey = document.getElementById("llm-api-key");
 const llmModel = document.getElementById("llm-model");
@@ -31,10 +69,12 @@ async function init() {
   const settings = await chrome.storage.sync.get({ enabled: true, autoSave: false });
   enabled.checked = settings.enabled;
   autoSave.checked = settings.autoSave;
+  await loadYuanbaoSettings();
   await loadLlmSettings();
   await loadFavorites({ persist: true });
 
   document.getElementById("save-settings").addEventListener("click", saveSettings);
+  document.getElementById("save-yuanbao-settings").addEventListener("click", saveYuanbaoSettings);
   document.getElementById("save-llm-settings").addEventListener("click", saveLlmSettings);
   document.getElementById("select-all").addEventListener("click", selectAll);
   document.getElementById("batch-download-selected").addEventListener("click", batchDownloadSelected);
@@ -69,11 +109,13 @@ async function saveSettings() {
 
 async function loadLlmSettings() {
   const settings = await chrome.storage.local.get({
+    llmEnabled: false,
     llmBaseUrl: "",
     llmApiKey: "",
     llmModel: "",
     llmPrompt: DEFAULT_LLM_PROMPT,
   });
+  llmEnabled.checked = settings.llmEnabled;
   llmBaseUrl.value = settings.llmBaseUrl;
   llmApiKey.value = settings.llmApiKey;
   llmModel.value = settings.llmModel;
@@ -82,12 +124,30 @@ async function loadLlmSettings() {
 
 async function saveLlmSettings() {
   await chrome.storage.local.set({
+    llmEnabled: llmEnabled.checked,
     llmBaseUrl: llmBaseUrl.value.trim(),
     llmApiKey: llmApiKey.value.trim(),
     llmModel: llmModel.value.trim(),
     llmPrompt: llmPrompt.value.trim() || DEFAULT_LLM_PROMPT,
   });
   setStatus("LLM 设置已保存。");
+}
+
+async function loadYuanbaoSettings() {
+  const settings = await chrome.storage.local.get({
+    weixinHelperEnabled: true,
+    yuanbaoPrompt: DEFAULT_YUANBAO_PROMPT,
+  });
+  weixinHelperEnabled.checked = settings.weixinHelperEnabled;
+  yuanbaoPrompt.value = settings.yuanbaoPrompt || DEFAULT_YUANBAO_PROMPT;
+}
+
+async function saveYuanbaoSettings() {
+  await chrome.storage.local.set({
+    weixinHelperEnabled: weixinHelperEnabled.checked,
+    yuanbaoPrompt: yuanbaoPrompt.value.trim() || DEFAULT_YUANBAO_PROMPT,
+  });
+  setStatus("元宝提示词已保存。");
 }
 
 async function loadFavorites({ persist = false } = {}) {
