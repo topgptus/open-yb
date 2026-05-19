@@ -22,19 +22,25 @@
         </div>
       </header>
 
-      <section class="oyb-settings">
-        <div>
-          <label class="oyb-switch">
-            <input id="enabled" type="checkbox">
-            <span>接管元宝分享页</span>
-          </label>
-          <label class="oyb-switch">
-            <input id="auto-save" type="checkbox">
-            <span>打开元宝链接后自动收藏</span>
-          </label>
+      <details class="oyb-settings oyb-collapsible">
+        <summary>
+          <span>基础设置</span>
+          <small>接管分享页、自动收藏</small>
+        </summary>
+        <div class="oyb-panel-body oyb-settings-body">
+          <div class="oyb-settings-row">
+            <label class="oyb-switch">
+              <input id="enabled" type="checkbox">
+              <span>接管元宝分享页</span>
+            </label>
+            <label class="oyb-switch">
+              <input id="auto-save" type="checkbox">
+              <span>打开元宝链接后自动收藏</span>
+            </label>
+          </div>
+          <button id="save-settings" type="button">保存设置</button>
         </div>
-        <button id="save-settings" type="button">保存设置</button>
-      </section>
+      </details>
 
       <section class="oyb-filters">
         <label class="oyb-field">
@@ -75,55 +81,67 @@
         <button id="clear-filters" type="button" class="oyb-secondary">清空筛选</button>
       </section>
 
-      <section class="oyb-yuanbao-settings">
-        <div class="oyb-section-title">
-          <div>
-            <p class="oyb-kicker">Yuanbao</p>
-            <h2>公众号发给元宝</h2>
+      <details class="oyb-yuanbao-settings oyb-collapsible">
+        <summary>
+          <span>公众号发给元宝</span>
+          <small>微信文章提示词</small>
+        </summary>
+        <div class="oyb-panel-body">
+          <div class="oyb-section-title">
+            <div>
+              <p class="oyb-kicker">Yuanbao</p>
+              <h2>公众号发给元宝</h2>
+            </div>
+            <button id="save-yuanbao-settings" type="button">保存提示词</button>
           </div>
-          <button id="save-yuanbao-settings" type="button">保存提示词</button>
+          <label class="oyb-switch oyb-inline-switch">
+            <input id="weixin-helper-enabled" type="checkbox">
+            <span>在微信公众号文章显示“发给元宝”按钮</span>
+          </label>
+          <label class="oyb-field oyb-prompt-field">
+            <span>元宝提炼提示词</span>
+            <textarea id="yuanbao-prompt" rows="10"></textarea>
+          </label>
         </div>
-        <label class="oyb-switch oyb-inline-switch">
-          <input id="weixin-helper-enabled" type="checkbox">
-          <span>在微信公众号文章显示“发给元宝”按钮</span>
-        </label>
-        <label class="oyb-field oyb-prompt-field">
-          <span>元宝提炼提示词</span>
-          <textarea id="yuanbao-prompt" rows="10"></textarea>
-        </label>
-      </section>
+      </details>
 
-      <section class="oyb-llm-settings">
-        <div class="oyb-section-title">
-          <div>
-            <p class="oyb-kicker">LLM</p>
-            <h2>选中内容 AI 整理</h2>
+      <details class="oyb-llm-settings oyb-collapsible">
+        <summary>
+          <span>选中内容 AI 整理</span>
+          <small>本地 / 自定义 LLM</small>
+        </summary>
+        <div class="oyb-panel-body">
+          <div class="oyb-section-title">
+            <div>
+              <p class="oyb-kicker">LLM</p>
+              <h2>选中内容 AI 整理</h2>
+            </div>
+            <button id="save-llm-settings" type="button">保存 LLM</button>
           </div>
-          <button id="save-llm-settings" type="button">保存 LLM</button>
+          <label class="oyb-switch oyb-inline-switch">
+            <input id="llm-enabled" type="checkbox">
+            <span>启用本地 / 自定义 LLM 整理</span>
+          </label>
+          <div class="oyb-llm-grid">
+            <label class="oyb-field">
+              <span>Base URL</span>
+              <input id="llm-base-url" type="url" placeholder="http://127.0.0.1:11434/v1">
+            </label>
+            <label class="oyb-field">
+              <span>API Key</span>
+              <input id="llm-api-key" type="password" placeholder="本地模型可填 ollama 或留空">
+            </label>
+            <label class="oyb-field">
+              <span>Model</span>
+              <input id="llm-model" type="text" placeholder="qwen3-4b / qwen2.5 / gpt-4o-mini">
+            </label>
+          </div>
+          <label class="oyb-field oyb-prompt-field">
+            <span>默认提示词</span>
+            <textarea id="llm-prompt" rows="8"></textarea>
+          </label>
         </div>
-        <label class="oyb-switch oyb-inline-switch">
-          <input id="llm-enabled" type="checkbox">
-          <span>启用本地 / 自定义 LLM 整理</span>
-        </label>
-        <div class="oyb-llm-grid">
-          <label class="oyb-field">
-            <span>Base URL</span>
-            <input id="llm-base-url" type="url" placeholder="http://127.0.0.1:11434/v1">
-          </label>
-          <label class="oyb-field">
-            <span>API Key</span>
-            <input id="llm-api-key" type="password" placeholder="本地模型可填 ollama 或留空">
-          </label>
-          <label class="oyb-field">
-            <span>Model</span>
-            <input id="llm-model" type="text" placeholder="qwen3-4b / qwen2.5 / gpt-4o-mini">
-          </label>
-        </div>
-        <label class="oyb-field oyb-prompt-field">
-          <span>默认提示词</span>
-          <textarea id="llm-prompt" rows="8"></textarea>
-        </label>
-      </section>
+      </details>
 
       <p id="options-status" class="oyb-status"></p>
       <section id="favorites-list" class="oyb-list"></section>

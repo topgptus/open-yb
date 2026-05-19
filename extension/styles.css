@@ -88,8 +88,7 @@
 }
 
 .oyb-toolbar,
-.oyb-options-header,
-.oyb-settings {
+.oyb-options-header {
   display: flex;
   gap: 16px;
   align-items: center;
@@ -251,9 +250,67 @@
   padding: 14px 16px;
 }
 
-.oyb-settings {
-  align-items: center;
+.oyb-collapsible {
   margin-top: 10px;
+}
+
+.oyb-collapsible > summary {
+  align-items: center;
+  color: var(--oyb-accent);
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  list-style: none;
+  min-height: 34px;
+}
+
+.oyb-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+.oyb-collapsible > summary span {
+  color: var(--oyb-text);
+  font-weight: 700;
+}
+
+.oyb-collapsible > summary small {
+  color: var(--oyb-muted);
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.oyb-collapsible > summary::after {
+  border: 1px solid var(--oyb-line);
+  border-radius: 999px;
+  color: var(--oyb-accent);
+  content: "展开";
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 9px;
+}
+
+.oyb-collapsible[open] > summary {
+  border-bottom: 1px solid var(--oyb-line);
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+}
+
+.oyb-collapsible[open] > summary::after {
+  content: "收起";
+}
+
+.oyb-panel-body {
+  display: grid;
+  gap: 10px;
+}
+
+.oyb-settings-body {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
 }
 
 .oyb-status {
@@ -268,7 +325,7 @@
   margin-top: 10px;
 }
 
-.oyb-settings > div {
+.oyb-settings-row {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -290,11 +347,6 @@
   align-self: end;
   padding-left: 10px;
   padding-right: 10px;
-}
-
-.oyb-yuanbao-settings,
-.oyb-llm-settings {
-  margin-top: 10px;
 }
 
 .oyb-section-title {
@@ -423,7 +475,6 @@
 @media (max-width: 720px) {
   .oyb-toolbar,
   .oyb-options-header,
-  .oyb-settings,
   .oyb-filters,
   .oyb-section-title,
   .oyb-favorite {
@@ -437,10 +488,19 @@
     width: 100%;
   }
 
-  .oyb-settings > div {
+  .oyb-settings-body,
+  .oyb-settings-row {
     align-items: stretch;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .oyb-collapsible > summary {
+    align-items: flex-start;
+  }
+
+  .oyb-collapsible > summary small {
+    display: none;
   }
 
   .oyb-settings button,
