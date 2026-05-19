@@ -1,5 +1,6 @@
 let parsedItem = null;
 let lastSaveResult = null;
+let questionCollapseObserver = null;
 const DEFAULT_YUANBAO_PROMPT = `请基于下面这篇微信公众号文章，帮我整理成一份适合财税公司内部知识库保存的文档。
 
 要求：
@@ -55,6 +56,7 @@ async function main() {
   if (!enabled) return;
 
   renderFloatingToolbar();
+  startQuestionCollapseObserver();
   setToolbarState("loading", "正在解析，页面会保持元宝原版显示...");
   await chrome.runtime.sendMessage({ type: "OPEN_YB_SYNC_RULE" }).catch(() => null);
 
@@ -201,58 +203,87 @@ function wireToolbarActions() {
   });
 }
 
+function startQuestionCollapseObserver() {
+  if (questionCollapseObserver || document.getElementById("oyb-question-toggle")) return;
+  const root = document.body || document.documentElement;
+  if (!root) return;
+
+  if (collapseYuanbaoQuestion(parsedItem)) return;
+  questionCollapseObserver = new MutationObserver(() => {
+    if (collapseYuanbaoQuestion(parsedItem)) stopQuestionCollapseObserver();
+  });
+  questionCollapseObserver.observe(root, { childList: true, subtree: true });
+  setTimeout(stopQuestionCollapseObserver, 8000);
+}
+
+function stopQuestionCollapseObserver() {
+  questionCollapseObserver?.disconnect();
+  questionCollapseObserver = null;
+}
+
 function collapseYuanbaoQuestion(item) {
-  if (!item?.questionText || item.questionText.length < 180 || document.getElementById("oyb-question-toggle")) return;
+  if (document.getElementById("oyb-question-toggle")) return true;
 
-  const applyCollapse = () => {
-    if (document.getElementById("oyb-question-toggle")) return true;
-    const target = findQuestionElement(item.questionText, item.answerText);
-    if (!target) return false;
+  const target = findQuestionElement(item?.questionText, item?.answerText);
+  if (!target) return false;
 
-    target.classList.add("oyb-question-collapsed");
-    const toggle = document.createElement("button");
-    toggle.id = "oyb-question-toggle";
-    toggle.className = "oyb-question-toggle";
-    toggle.type = "button";
-    toggle.textContent = "展开提问";
-    toggle.title = "提示词较长，Open YB 已默认折叠提问内容";
-    toggle.addEventListener("click", () => {
-      const collapsed = target.classList.toggle("oyb-question-collapsed");
-      target.classList.toggle("oyb-question-expanded", !collapsed);
-      toggle.textContent = collapsed ? "展开提问" : "收起提问";
-    });
-    target.before(toggle);
-    return true;
-  };
-
-  if (!applyCollapse()) {
-    setTimeout(applyCollapse, 500);
-    setTimeout(applyCollapse, 1500);
-  }
+  target.classList.add("oyb-question-collapsed");
+  const toggle = document.createElement("button");
+  toggle.id = "oyb-question-toggle";
+  toggle.className = "oyb-question-toggle";
+  toggle.type = "button";
+  toggle.textContent = "展开提问";
+  toggle.title = "提示词较长，Open YB 已默认折叠提问内容";
+  toggle.addEventListener("click", () => {
+    const willExpand = target.classList.contains("oyb-question-collapsed");
+    target.classList.toggle("oyb-question-collapsed", !willExpand);
+    toggle.textContent = willExpand ? "收起提问" : "展开提问";
+  });
+  target.before(toggle);
+  return true;
 }
 
 function findQuestionElement(questionText, answerText) {
-  const chunks = normalizeForMatch(questionText)
+  const chunks = normalizeForMatch(questionText || "")
     .split(/\s+/)
     .filter((chunk) => chunk.length >= 8)
     .slice(0, 10);
-  if (chunks.length === 0) return null;
-
   const answerProbe = normalizeForMatch(answerText || "").slice(0, 80);
-  const candidates = [...document.body.querySelectorAll("div, section, article, p, span")]
-    .filter((element) => {
-      if (element.closest("#oyb-pure-tools")) return false;
-      const text = normalizeForMatch(element.innerText || element.textContent || "");
-      if (text.length < 120) return false;
-      if (answerProbe && text.includes(answerProbe)) return false;
-      return chunks.some((chunk) => text.includes(chunk));
-    })
-    .map((element) => {
-      const text = normalizeForMatch(element.innerText || element.textContent || "");
-      const score = chunks.reduce((count, chunk) => count + (text.includes(chunk) ? 1 : 0), 0);
-      return { element, score, length: text.length };
-    })
-    .filter((candidate) => candidate.score >= Math.min(2, chunks.length));
+
+  const humanItems = [...document.querySelectorAll(".agent-chat__list__item--human")];
+  const searchRoot = humanItems.length
+    ? humanItems
+    : [...document.body.querySelectorAll("div, section, article, p, span")];
+  const seen = new Set();
+  const candidates = [];
+  for (const element of searchRoot) {
+    const target = element.closest?.(".agent-chat__list__item--human") || element;
+    if (seen.has(target)) continue;
+    seen.add(target);
+    if (target.closest("#oyb-pure-tools") || target.id === "oyb-question-toggle") continue;
+    if (target.classList.contains("oyb-question-collapsed")) continue;
+
+    const text = normalizeForMatch(target.innerText || target.textContent || "");
+    if (text.length < 180 || /^https?:\/\//i.test(text)) continue;
+    if (answerProbe && text.includes(answerProbe)) continue;
+
+    const chunkScore = chunks.reduce((count, chunk) => count + (text.includes(chunk) ? 1 : 0), 0);
+    const signalScore = [
+      "请帮我处理",
+      "微信公众号文章",
+      "文章标题",
+      "文章链接",
+      "请基于下面",
+      "要求：",
+    ].reduce((count, signal) => count + (text.includes(signal) ? 1 : 0), 0);
+    if (chunks.length && chunkScore < Math.min(2, chunks.length)) continue;
+    if (!chunks.length && signalScore < 2) continue;
+    candidates.push({
+      element: target,
+      score: chunkScore * 3 + signalScore + (target.classList.contains("agent-chat__list__item--human") ? 2 : 0),
+      length: text.length,
+    });
+  }
 
   candidates.sort((a, b) => b.score - a.score || a.length - b.length);
   return candidates[0]?.element || null;

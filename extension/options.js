@@ -186,7 +186,7 @@ function renderFavorites() {
       <div class="oyb-favorite-main">
         <div class="oyb-source-type">${escapeHtml(sourceTypeLabel(item.sourceType))}</div>
         <h2>${escapeHtml(item.title || "元宝分享内容")}</h2>
-        <p>${escapeHtml(item.questionText || item.description || "无问题摘要")}</p>
+        <p>${escapeHtml(favoritePreviewText(item))}</p>
         ${renderTags(item.tags)}
         <a href="${escapeAttr(item.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(item.sourceUrl)}</a>
         <time>${escapeHtml(formatDate(item.savedAt || item.createdAt || item.updatedAt))}</time>
@@ -321,7 +321,7 @@ function filteredFavorites() {
       const haystack = [
         item.title,
         item.description,
-        item.questionText,
+        normalizeSourceType(item) === "yuanbao" ? "" : item.questionText,
         item.answerText,
         item.sourceUrl,
         ...(item.tags || []),
@@ -371,6 +371,23 @@ function renderTagFilter() {
   const tags = [...new Set(favorites.flatMap((item) => normalizeTags(item.tags || [])))].sort((a, b) => a.localeCompare(b, "zh-CN"));
   tagFilter.innerHTML = `<option value="">全部标签</option>${tags.map((tag) => `<option value="${escapeAttr(tag)}">#${escapeHtml(tag)}</option>`).join("")}`;
   tagFilter.value = tags.includes(current) ? current : "";
+}
+
+function favoritePreviewText(item) {
+  const sourceType = normalizeSourceType(item);
+  const text = sourceType === "yuanbao"
+    ? (item.answerText || item.description || "")
+    : (item.questionText || item.description || item.answerText || "");
+  return compactPreview(text) || "无内容摘要";
+}
+
+function compactPreview(value) {
+  const text = String(value || "")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 180 ? `${text.slice(0, 180)}...` : text;
 }
 
 function collectionToMarkdown(items) {
