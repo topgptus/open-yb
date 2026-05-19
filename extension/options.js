@@ -386,6 +386,7 @@ function collectionToMarkdown(items) {
 
 function itemToMarkdown(item) {
   const tags = normalizeTags(item.tags || []);
+  const isYuanbao = normalizeSourceType(item) === "yuanbao";
   const lines = [
     "---",
     `title: ${yamlValue(item.title || "元宝分享内容")}`,
@@ -403,15 +404,17 @@ function itemToMarkdown(item) {
     tags.length ? `标签：${tags.map((tag) => `#${tag}`).join(" ")}` : "",
     "",
   ].filter((line, index, array) => line || array[index - 1] !== "");
-  if (item.questionText) lines.push("### 问题", "", item.questionText, "");
-  if (item.answerText) lines.push("### 回答", "", item.answerText, "");
+  if (!isYuanbao && item.questionText) lines.push("### 问题", "", item.questionText, "");
+  if (item.answerText) lines.push(isYuanbao ? "### 正文" : "### 回答", "", item.answerText, "");
   return `${lines.join("\n").trim()}\n`;
 }
 
 function normalizeFavorite(item) {
-  const text = `${item.questionText || ""}\n${item.answerText || ""}\n${item.description || ""}`;
   const sourceUrl = normalizeSourceUrl(item.sourceUrl || "");
   const sourceType = normalizeSourceType(item);
+  const text = sourceType === "yuanbao"
+    ? `${item.answerText || ""}\n${item.description || ""}`
+    : `${item.questionText || ""}\n${item.answerText || ""}\n${item.description || ""}`;
   const tags = sourceType === "yuanbao" || sourceType === "ai-selection"
     ? normalizeTags([...(item.tags || []), ...extractTags(text)])
     : normalizeTags(item.tags || []);

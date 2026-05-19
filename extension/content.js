@@ -213,7 +213,7 @@ async function openOptionsPage() {
 function normalizeItem(item) {
   const now = new Date().toISOString();
   const sourceUrl = normalizeSourceUrl(item.sourceUrl || location.href);
-  const tags = normalizeTags([...(item.tags || []), ...extractTags(`${item.questionText || ""}\n${item.answerText || ""}\n${item.description || ""}`)]);
+  const tags = normalizeTags([...(item.tags || []), ...extractTags(`${item.answerText || ""}\n${item.description || ""}`)]);
   return {
     id: item.id || item.shareId || hashText(sourceUrl),
     sourceUrl,
@@ -271,7 +271,6 @@ function itemToMarkdown(item) {
     tags.length ? `标签：${tags.map((tag) => `#${tag}`).join(" ")}` : "",
     "",
   ].filter((line, index, array) => line || array[index - 1] !== "");
-  if (item.questionText) lines.push("## 问题", "", item.questionText, "");
   if (item.answerText) lines.push("## 回答", "", item.answerText, "");
   return `${lines.join("\n").trim()}\n`;
 }
