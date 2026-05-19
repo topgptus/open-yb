@@ -68,6 +68,7 @@ async function main() {
   }
 
   parsedItem = normalizeItem(response.data);
+  collapseYuanbaoQuestion(parsedItem);
   if (autoSave) {
     lastSaveResult = await saveFavorite(parsedItem);
     setToolbarState("ready", lastSaveResult.created ? "已自动收藏。" : "已存在收藏，已更新内容。");
@@ -198,6 +199,67 @@ function wireToolbarActions() {
     downloadMarkdown(`${safeFileName(parsedItem.title || parsedItem.shareId || "yuanbao")}.md`, itemToMarkdown(parsedItem));
     setToolbarState("ready", "已生成 Markdown 文件。");
   });
+}
+
+function collapseYuanbaoQuestion(item) {
+  if (!item?.questionText || item.questionText.length < 180 || document.getElementById("oyb-question-toggle")) return;
+
+  const applyCollapse = () => {
+    if (document.getElementById("oyb-question-toggle")) return true;
+    const target = findQuestionElement(item.questionText, item.answerText);
+    if (!target) return false;
+
+    target.classList.add("oyb-question-collapsed");
+    const toggle = document.createElement("button");
+    toggle.id = "oyb-question-toggle";
+    toggle.className = "oyb-question-toggle";
+    toggle.type = "button";
+    toggle.textContent = "展开提问";
+    toggle.title = "提示词较长，Open YB 已默认折叠提问内容";
+    toggle.addEventListener("click", () => {
+      const collapsed = target.classList.toggle("oyb-question-collapsed");
+      target.classList.toggle("oyb-question-expanded", !collapsed);
+      toggle.textContent = collapsed ? "展开提问" : "收起提问";
+    });
+    target.before(toggle);
+    return true;
+  };
+
+  if (!applyCollapse()) {
+    setTimeout(applyCollapse, 500);
+    setTimeout(applyCollapse, 1500);
+  }
+}
+
+function findQuestionElement(questionText, answerText) {
+  const chunks = normalizeForMatch(questionText)
+    .split(/\s+/)
+    .filter((chunk) => chunk.length >= 8)
+    .slice(0, 10);
+  if (chunks.length === 0) return null;
+
+  const answerProbe = normalizeForMatch(answerText || "").slice(0, 80);
+  const candidates = [...document.body.querySelectorAll("div, section, article, p, span")]
+    .filter((element) => {
+      if (element.closest("#oyb-pure-tools")) return false;
+      const text = normalizeForMatch(element.innerText || element.textContent || "");
+      if (text.length < 120) return false;
+      if (answerProbe && text.includes(answerProbe)) return false;
+      return chunks.some((chunk) => text.includes(chunk));
+    })
+    .map((element) => {
+      const text = normalizeForMatch(element.innerText || element.textContent || "");
+      const score = chunks.reduce((count, chunk) => count + (text.includes(chunk) ? 1 : 0), 0);
+      return { element, score, length: text.length };
+    })
+    .filter((candidate) => candidate.score >= Math.min(2, chunks.length));
+
+  candidates.sort((a, b) => b.score - a.score || a.length - b.length);
+  return candidates[0]?.element || null;
+}
+
+function normalizeForMatch(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
 }
 
 async function openOptionsPage() {
